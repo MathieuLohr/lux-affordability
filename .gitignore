@@ -1,0 +1,23 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# build output
+dist/
+.astro/
+
+# generated
+src/paraglide/
+
+# environment
+.env
+.env.local
+.env.*.local
+
+# editor / OS
+.DS_Store
+.idea/
+.claude/settings.local.json
+
+# local scratch
+.docs-cache.md

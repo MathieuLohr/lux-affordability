@@ -1,0 +1,6 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "site_title": "Salary vs. Rent",
+  "site_tagline": "Luxembourg housing affordability, by commune.",
+  "scaffold_ok": "Scaffold check"
+}

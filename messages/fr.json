@@ -1,0 +1,6 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "site_title": "Salaire vs. Loyer",
+  "site_tagline": "L'accessibilite du logement au Luxembourg, par commune.",
+  "scaffold_ok": "Verification du scaffold"
+}

@@ -1,0 +1,20 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+/*
+ * Tailwind v4 @theme: only fonts and easing live here.
+ * Colors are intentionally NOT in @theme (DESIGN.md tokens are canonical
+ * and bare-named in :root; reach them via var(--token) in CSS).
+ */
+@theme {
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-ui:      'Inter', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+  --ease-out:     cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-ui);
+}
