@@ -1,0 +1,74 @@
+{
+  "boundaries": {
+    "name": "Luxembourg commune boundaries (LAU2)",
+    "source": "Administration du cadastre et de la topographie",
+    "publisher": "data.public.lu",
+    "license": "CC0",
+    "format": "geojson",
+    "crs": "EPSG:4326",
+    "url": "https://download.data.public.lu/resources/limites-administratives-du-grand-duche-de-luxembourg/20231123-101528/communes4326.geojson",
+    "dataset_page": "https://data.public.lu/fr/datasets/limites-administratives-du-grand-duche-de-luxembourg/",
+    "dataset_id": "56fd17240d6ceb6628b6f9f2",
+    "update_cadence": "stable",
+    "notes": "Stable file. Properties: COMMUNE, CANTON, DISTRICT, LAU2."
+  },
+  "rents_apartments_by_commune": {
+    "name": "Advertised apartment rents per commune, rolling 12 months",
+    "source": "Observatoire de l'Habitat / LISER / STATEC",
+    "publisher": "data.public.lu",
+    "license": "CC-BY 4.0",
+    "format": "xls",
+    "url": "https://download.data.public.lu/resources/loyers-annonces-des-logements-par-commune/20260326-095959/location-appartement-2025.xls",
+    "dataset_page": "https://data.public.lu/fr/datasets/loyers-annonces-des-logements-par-commune/",
+    "dataset_id": "57f25c07cc765e23279433af",
+    "api_resources_endpoint": "https://data.public.lu/api/1/datasets/57f25c07cc765e23279433af/",
+    "update_cadence": "quarterly",
+    "header_row_index": 8,
+    "columns": ["_empty1", "_empty2", "commune", "n_listings", "avg_rent_eur", "avg_rent_per_m2"],
+    "national_average_row": "Moyenne nationale",
+    "suppression_marker": "*",
+    "suppression_threshold": "30 listings",
+    "coverage_2025": "34 communes published"
+  },
+  "rents_houses_by_commune": {
+    "name": "Advertised house rents per commune (sparse, 7 communes)",
+    "url": "https://download.data.public.lu/resources/loyers-annonces-des-logements-par-commune/20260326-100021/location-maison-2025.xls",
+    "license": "CC-BY 4.0",
+    "format": "xls",
+    "notes": "Same dataset as apartments. House rentals are too sparse for the choropleth, do not use as fallback."
+  },
+  "sales_apartments_by_commune": {
+    "name": "Apartment sale prices per commune (existing + VEFA)",
+    "source": "Observatoire de l'Habitat / LISER / STATEC",
+    "publisher": "data.public.lu",
+    "license": "CC-BY 4.0",
+    "format": "xls",
+    "url": "https://download.data.public.lu/resources/prix-de-vente-des-appartements-par-commune/20260326-094248/prix-moyen-au-metre-carre-enregistre-par-commune-2025.xls",
+    "dataset_page": "https://data.public.lu/fr/datasets/prix-de-vente-des-appartements-par-commune/",
+    "dataset_id": "57f26768cc765e23279433b0",
+    "api_resources_endpoint": "https://data.public.lu/api/1/datasets/57f26768cc765e23279433b0/",
+    "update_cadence": "annual full year + quarterly rolling",
+    "header_row_index": 10,
+    "columns": ["_empty", "commune", "n_existing", "price_existing_per_m2", "range_existing", "n_vefa", "price_vefa_per_m2", "range_vefa"],
+    "suppression_marker": "*",
+    "coverage_2025": "56 communes with at least one publishable price"
+  },
+  "logement_en_chiffres_pdf": {
+    "name": "Le Logement en Chiffres - quarterly synthesis report",
+    "url": "https://download.data.public.lu/resources/prix-de-vente-des-appartements-le-logement-en-chiffres/20260326-100211/logement-en-chiffre-19.pdf",
+    "format": "pdf",
+    "notes": "Contains zone-level aggregates (Canton de Luxembourg, Capellen-Mersch, Est, Nord, Esch-sur-Alzette). Not used in v1 but available for fallback aggregation."
+  },
+  "name_normalization": {
+    "comment": "The data files use slightly different commune name conventions than the boundary file. Apply these mappings during the build.",
+    "data_to_geojson": {
+      "Luxembourg-Ville": "Luxembourg",
+      "Petange": "Pétange",
+      "Redange": "Redange/Attert"
+    }
+  },
+  "api_pattern_for_latest_url": {
+    "comment": "To always fetch the latest quarterly file rather than hardcoding URLs, hit the dataset's API endpoint and pick the most recent resource by last_modified.",
+    "example": "curl https://data.public.lu/api/1/datasets/57f25c07cc765e23279433af/ | jq '.resources | sort_by(.last_modified) | reverse | .[0].url'"
+  }
+}
