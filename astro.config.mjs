@@ -4,10 +4,13 @@ import svelte from '@astrojs/svelte';
 import tailwindcss from '@tailwindcss/vite';
 import { paraglideVitePlugin } from '@inlang/paraglide-js';
 
+import cloudflare from '@astrojs/cloudflare';
+
 // https://astro.build/config
 export default defineConfig({
   site: 'https://lux-affordability.example',
   integrations: [svelte()],
+
   vite: {
     plugins: [
       tailwindcss(),
@@ -18,4 +21,6 @@ export default defineConfig({
       }),
     ],
   },
+
+  adapter: cloudflare(),
 });
