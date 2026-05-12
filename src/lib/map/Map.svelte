@@ -15,14 +15,14 @@
   import { makeHatchImageData } from './hatch-pattern.ts';
   import { burden } from './burden.ts';
   import { burdenToBand, BAND_LABELS, type BandKey } from './color-ramp.ts';
+  import { scenario } from '../state/scenario.svelte.ts';
   import Tooltip from '../components/Tooltip.svelte';
   import Legend from '../components/Legend.svelte';
 
   type Props = {
-    scenario: { income: number; size: number };
     dataUrl: string;
   };
-  const { scenario, dataUrl }: Props = $props();
+  const { dataUrl }: Props = $props();
 
   type CommuneProps = {
     COMMUNE: string;
