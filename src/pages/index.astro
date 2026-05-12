@@ -13,7 +13,7 @@ import { m } from '../paraglide/messages.js';
 
     <h1
       class="font-display mt-3 text-5xl leading-[1.1] tracking-[-0.02em]"
-      style="color: var(--ink);"
+      style="color: var(--ink); font-variation-settings: 'opsz' 72;"
     >
       {m.site_title()}
     </h1>
@@ -33,5 +33,15 @@ import { m } from '../paraglide/messages.js';
       <span class="h-6 w-6 rounded" style="background: var(--band-e);"></span>
       <span class="h-6 w-6 rounded" style="background: var(--band-x);"></span>
     </div>
+
+    <p class="mt-10 font-mono text-[11px] tracking-[0.04em]" style="color: var(--ink-soft);">
+      <a
+        href="/methodology"
+        class="underline underline-offset-2"
+        style="color: var(--ink-soft);"
+      >
+        {m.methodology_link()} →
+      </a>
+    </p>
   </main>
 </Layout>

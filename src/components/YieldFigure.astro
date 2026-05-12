@@ -1,0 +1,153 @@
+---
+/*
+ * Inline yield-distribution figure for the methodology page.
+ *
+ * The 31 yields below are illustrative values chosen to match the
+ * methodology's stated properties (n=31, range 3 to 8 percent, median
+ * 4.39 percent). When the data pipeline lands and emits per-commune
+ * yields to static/data/meta.json, this array will be replaced with the
+ * real numbers and the dot positions will recompute deterministically.
+ */
+const yields = [
+  3.10, 3.30, 3.55, 3.70, 3.80, 3.90, 3.95, 4.05, 4.10, 4.15,
+  4.20, 4.25, 4.30, 4.32, 4.36, 4.39, 4.45, 4.55, 4.65, 4.75,
+  4.85, 5.00, 5.15, 5.35, 5.50, 5.80, 6.10, 6.50, 6.95, 7.35,
+  7.90,
+];
+
+const median = 4.39;
+
+const VB_W = 600;
+const VB_H = 160;
+const PAD_X = 24;
+const X_MIN = 3;
+const X_MAX = 8;
+const Y_BASELINE = 124;
+const DOT_R = 3.2;
+const STACK_DY = 7.6;
+const BIN_WIDTH = 0.2;
+
+const xScale = (VB_W - PAD_X * 2) / (X_MAX - X_MIN);
+const toX = (v: number) => PAD_X + (v - X_MIN) * xScale;
+
+const bins = new Map<number, number[]>();
+for (const v of yields) {
+  const binIdx = Math.floor((v - X_MIN) / BIN_WIDTH);
+  if (!bins.has(binIdx)) bins.set(binIdx, []);
+  bins.get(binIdx)!.push(v);
+}
+
+type Dot = { x: number; y: number };
+const dots: Dot[] = [];
+for (const [binIdx, vals] of bins) {
+  const binCenter = X_MIN + (binIdx + 0.5) * BIN_WIDTH;
+  const x = toX(binCenter);
+  vals.forEach((_, k) => {
+    dots.push({ x, y: Y_BASELINE - (k + 0.5) * STACK_DY });
+  });
+}
+
+const medianX = toX(median);
+const ticks = [3, 4, 5, 6, 7, 8];
+---
+<figure class="figure">
+  <svg
+    viewBox={`0 0 ${VB_W} ${VB_H}`}
+    width="100%"
+    height="auto"
+    role="img"
+    aria-labelledby="yield-figure-title yield-figure-desc"
+    preserveAspectRatio="xMidYMid meet"
+  >
+    <title id="yield-figure-title">Distribution of gross annual rental yields</title>
+    <desc id="yield-figure-desc">
+      Dot plot of 31 commune-level gross annual rental yields, ranging from about 3.1 to 7.9 percent.
+      The median yield of 4.39 percent is marked by a vertical line.
+    </desc>
+
+    <!-- axis baseline -->
+    <line
+      x1={PAD_X}
+      x2={VB_W - PAD_X}
+      y1={Y_BASELINE + 1}
+      y2={Y_BASELINE + 1}
+      stroke="var(--rule)"
+      stroke-width="1"
+    />
+
+    <!-- ticks -->
+    {ticks.map((t) => (
+      <g>
+        <line
+          x1={toX(t)}
+          x2={toX(t)}
+          y1={Y_BASELINE + 1}
+          y2={Y_BASELINE + 5}
+          stroke="var(--ink-faint)"
+          stroke-width="1"
+        />
+        <text
+          x={toX(t)}
+          y={Y_BASELINE + 18}
+          text-anchor="middle"
+          font-family="var(--font-mono)"
+          font-size="10"
+          fill="var(--ink-faint)"
+        >
+          {t}%
+        </text>
+      </g>
+    ))}
+
+    <!-- median line -->
+    <line
+      x1={medianX}
+      x2={medianX}
+      y1={24}
+      y2={Y_BASELINE}
+      stroke="oklch(0.52 0.20 25)"
+      stroke-width="1"
+      stroke-dasharray="0"
+    />
+    <text
+      x={medianX + 6}
+      y={32}
+      font-family="var(--font-mono)"
+      font-size="10"
+      font-weight="500"
+      fill="oklch(0.52 0.20 25)"
+    >
+      median 4.39%
+    </text>
+
+    <!-- dots -->
+    {dots.map((d) => (
+      <circle cx={d.x} cy={d.y} r={DOT_R} fill="var(--ink)" opacity="0.85" />
+    ))}
+  </svg>
+
+  <figcaption class="caption">
+    <strong>Figure 1.</strong> Gross annual rental yields for the 31 communes that publish both rents and sales in 2025. The 4.39% median (red line) is used to estimate rents in 23 communes that publish sales but not rents. Source: Observatoire de l'Habitat, calculations by the author.
+  </figcaption>
+</figure>
+
+<style>
+  .figure {
+    margin: 32px 0;
+    padding: 0;
+  }
+
+  .caption {
+    margin-top: 14px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    max-width: 70ch;
+  }
+
+  .caption strong {
+    font-weight: 500;
+    color: var(--ink);
+  }
+</style>

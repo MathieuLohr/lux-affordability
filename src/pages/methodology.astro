@@ -1,0 +1,717 @@
+---
+import Layout from '../layouts/Layout.astro';
+import MastheadStripped from '../components/MastheadStripped.astro';
+import HatchRule from '../components/HatchRule.astro';
+import YieldFigure from '../components/YieldFigure.astro';
+import { m } from '../paraglide/messages.js';
+
+/*
+ * Prose is authored in English in this file. French translation will move
+ * to a /fr/methodology.astro variant when fr copy lands; chrome strings
+ * already route through Paraglide (see m.* calls below).
+ */
+
+const buildDate = new Intl.DateTimeFormat('en-GB', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+}).format(new Date());
+
+const siteUrl = 'https://lux-affordability.example';
+const repoUrl = 'https://github.com/mathieulohr/lux-affordability';
+---
+<Layout title={m.methodology_title()} description={m.methodology_description()}>
+  <MastheadStripped />
+
+  <article class="article" lang="en">
+    <h1 class="h1">{m.methodology_title()}</h1>
+
+    <p class="deck">
+      Each commune is colored by the share of a chosen income that an
+      estimated rent would consume. Some figures are measured, some are
+      estimated from observed sales using the median rental yield, and
+      some communes have no published data at all. This page explains
+      all three.
+    </p>
+
+    <nav class="index" aria-label="On this page">
+      <ol>
+        <li><a href="#what-this-is"><span class="num">01</span><span class="label">What this is</span></a></li>
+        <li><a href="#how-to-read-the-map"><span class="num">02</span><span class="label">How to read the map</span></a></li>
+        <li><a href="#data-sources"><span class="num">03</span><span class="label">Data sources</span></a></li>
+        <li><a href="#the-rent-yield-estimation"><span class="num">04</span><span class="label">The rent-yield estimation</span></a></li>
+        <li><a href="#limitations"><span class="num">05</span><span class="label">Limitations</span></a></li>
+        <li><a href="#income-presets"><span class="num">06</span><span class="label">Income presets</span></a></li>
+        <li><a href="#color-choices"><span class="num">07</span><span class="label">Color choices</span></a></li>
+        <li><a href="#update-cadence"><span class="num">08</span><span class="label">Update cadence</span></a></li>
+      </ol>
+    </nav>
+
+    <section id="what-this-is">
+      <HatchRule />
+      <h2>What this is</h2>
+      <p>
+        This is a map of rent burden, the share of an income consumed by rent, across Luxembourg's 100 communes. Set an income, set an apartment size, and each commune colors green, amber, orange, red, or deep crimson depending on whether the typical rent at that size would consume less than 30 percent, between 30 and 70 percent, or more than 70 percent of that income.
+      </p>
+      <p>
+        The thresholds are not arbitrary. The 30 percent ceiling is the standard housing-economics benchmark for affordability, used by the OECD, HUD, and most national housing agencies.<sup><a id="fnref-1" href="#fn-1" class="fnref">1</a></sup> The 50 and 70 percent steps match HUD's severe-cost-burden categories.<sup><a id="fnref-2" href="#fn-2" class="fnref">2</a></sup> A household paying less than 30 percent has room for everything else; one paying more than 70 percent does not have enough left to live.
+      </p>
+      <p>
+        Luxembourg has the EU's highest GDP per capita and one of its worst rent-to-income ratios. The map exists to make that single fact stand still long enough to be looked at.
+      </p>
+    </section>
+
+    <section id="how-to-read-the-map">
+      <HatchRule />
+      <h2>How to read the map</h2>
+      <p>
+        Each commune carries one of six states. Five chromatic bands map to rent burden ratios; the sixth is a tinted grey for communes that do not publish enough data to draw a band.
+      </p>
+      <p>
+        A commune's fill is solid when its rent is <em>measured</em> from advertised listings published by the <a href="https://data.public.lu/fr/datasets/loyers-annonces-des-logements-par-commune/" target="_blank" rel="noopener" class="src">Observatoire de l'Habitat</a>. A commune's fill is overlaid with a diagonal hatch when its rent is <em>estimated</em>: this applies when a commune publishes sale prices but not rents, in which case the median rental yield (see <a href="#the-rent-yield-estimation" class="xref">section 04</a>) maps the observed sale price to an estimated rent. A flat grey commune is one with neither rent nor sale data at this size, after the Observatoire's suppression rules for low transaction counts.
+      </p>
+      <p>
+        Hovering or tapping a commune surfaces its rent (or rent estimate), the typical sale price, the number of listings the figures rest on, and a mono provenance tag reading <code>measured</code>, <code>estimated</code>, or <code>no data</code>. The provenance tag is the single point of truth: if it reads <code>estimated</code>, every other number in the tooltip is downstream of the yield estimate.
+      </p>
+    </section>
+
+    <section id="data-sources">
+      <HatchRule />
+      <h2>Data sources</h2>
+      <p>
+        Three datasets feed the map. All three are publicly available, all three are linked below. The site adds nothing to them beyond a merge step and the yield estimation described in <a href="#the-rent-yield-estimation" class="xref">section 04</a>.
+      </p>
+
+      <h3>Commune boundaries</h3>
+      <p>
+        Administrative boundaries for Luxembourg's 100 communes, published by the Administration du Cadastre et de la Topographie via <a href="https://data.public.lu/fr/datasets/limites-administratives-du-grand-duche-de-luxembourg/" target="_blank" rel="noopener" class="src">data.public.lu</a>. Format: GeoJSON in <code>EPSG:4326</code>. License: CC0. The geometry is treated as canonical and used without re-simplification.
+      </p>
+
+      <h3>Advertised rents</h3>
+      <p>
+        Quarterly <em>Observatoire de l'Habitat</em> releases of advertised rental prices, aggregated from the seven major Luxembourg listing portals. Format: XLS, one sheet per apartment size (studio, 1-bedroom, 2-bedroom, 3-bedroom, 4-bedroom). Cells marked with an asterisk are suppressed: a commune is reported only when its listing count crosses the Observatoire's publication threshold of around 30 listings per quarter. License: CC-BY 4.0. Source: <a href="https://data.public.lu/fr/datasets/loyers-annonces-des-logements-par-commune/" target="_blank" rel="noopener" class="src">loyers annoncés des logements par commune</a>.
+      </p>
+
+      <h3>Sale prices</h3>
+      <p>
+        Annual <em>Observatoire de l'Habitat</em> releases of dwelling sale prices, drawn from notarial records and split into existing-stock and VEFA (sold off-plan). Format: XLS with sheets per dwelling type. Same suppression rule as the rent release. License: CC-BY 4.0. Source: <a href="https://data.public.lu/fr/datasets/prix-de-vente-des-appartements-par-commune/" target="_blank" rel="noopener" class="src">prix de vente des appartements par commune</a>.
+      </p>
+    </section>
+
+    <section id="the-rent-yield-estimation">
+      <HatchRule />
+      <h2>The rent-yield estimation</h2>
+      <p>
+        Of the 100 communes, 34 publish enough listings for the Observatoire to report a per-square-metre rent at the apartment size shown. A further 23 publish a sale price but no rent. The remaining 43 publish neither, at least at the granularity the site needs.
+      </p>
+      <p>
+        Filling in the 23 sales-only communes is the only inferential step the site takes. The procedure is short, and intentionally so:
+      </p>
+      <ol class="steps">
+        <li>Identify the communes that publish both an advertised rent and a sale price at the relevant size. There are 31 of these in 2025.</li>
+        <li>For each, compute the gross annual rental yield: twelve months of rent divided by sale price.</li>
+        <li>Take the median across those 31 communes.</li>
+        <li>For a commune with a sale price but no rent, multiply its sale price by that median yield (and divide by twelve) to estimate a monthly rent at that size.</li>
+      </ol>
+      <p>
+        The 31 yields are clustered between roughly 3 and 8 percent, with a median of 4.39 percent. The distribution is shown in Figure 1.
+      </p>
+
+      <YieldFigure />
+
+      <blockquote class="pull-quote">
+        The yield distribution is empirically narrow, not assumed: 31 communes, clustered between 3 and 8 percent, median 4.39. Estimating rent from observed sales is closer to ground truth than estimating from a regression on distance to the capital, even when the regression has lower variance.
+      </blockquote>
+
+      <p>
+        The choice over a distance-to-capital regression is deliberate. A regression on geographic features would extend coverage to all 100 communes at the cost of inventing precision the source data does not have. Yields, by contrast, are a property of the local market that is measured for 31 communes and assumed to be similar for the next 23. When the 23 communes publish their own rents in a future release, the estimate is replaced by a measurement, and the map updates without a model change.
+      </p>
+    </section>
+
+    <section id="limitations">
+      <HatchRule />
+      <h2>Limitations</h2>
+      <p>
+        Four limitations matter and should be visible to anyone citing this map.
+      </p>
+      <p>
+        <strong>Advertised, not concluded.</strong> Rents come from listing portals, not signed leases. Advertised rents run slightly above concluded rents during tight markets and slightly below during slack ones. The Observatoire estimates the gap at a few percent in either direction, but this site does not adjust for it.
+      </p>
+      <p>
+        <strong>Yield distortion at low listing volume.</strong> The 31 yields underlying the median include communes with as few as 30 publishable listings, which is the Observatoire's threshold for publishing at all. Below that threshold the rent is suppressed; just above it, the rent figure carries non-trivial noise. The median is robust to outliers, but its precision is bounded by the input it draws on.
+      </p>
+      <p>
+        <strong>Temporal mismatch.</strong> Sale prices are published as annual full-year figures; rents are published on a rolling 12-month basis updated quarterly. The site joins them at the most recent quarter available, accepting up to a one-year window of misalignment for communes where the two releases do not overlap cleanly.
+      </p>
+      <p>
+        <strong>The 43-commune coverage gap.</strong> Forty-three communes publish neither rent nor sale data at the size the user selects. The map shows them in grey, and the legend's coverage strip reports the count. This site does not fill them in with a model. The grey is the honest answer.
+      </p>
+    </section>
+
+    <section id="income-presets">
+      <HatchRule />
+      <h2>Income presets</h2>
+      <p>
+        The slider accepts any monthly net income, but five preset chips are provided as common reference points. Net figures assume Class 1 tax (single, no dependants), the most conservative bracket, computed via the ACD net-salary calculator on the 2025 STATEC and ITM gross publications. A household with dependants, joint filing, or pension status will net more than these figures; nothing on the map is recomputed for those cases.
+      </p>
+      <table class="presets">
+        <thead>
+          <tr>
+            <th scope="col">Preset</th>
+            <th scope="col">Gross monthly</th>
+            <th scope="col">Net monthly (Class 1)</th>
+            <th scope="col">Source</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Minimum, unskilled</td>
+            <td>€2,571</td>
+            <td>~€2,200</td>
+            <td>ITM minimum wage, 2025</td>
+          </tr>
+          <tr>
+            <td>Minimum, skilled</td>
+            <td>€3,085</td>
+            <td>~€2,550</td>
+            <td>ITM minimum wage, 2025</td>
+          </tr>
+          <tr>
+            <td>Median wage</td>
+            <td>€5,200</td>
+            <td>~€3,800</td>
+            <td>STATEC, 2025</td>
+          </tr>
+          <tr>
+            <td>Average wage</td>
+            <td>€6,500</td>
+            <td>~€4,600</td>
+            <td>STATEC, 2025</td>
+          </tr>
+          <tr>
+            <td>Couple at 2x median</td>
+            <td>€10,400</td>
+            <td>~€7,400</td>
+            <td>STATEC + assumption</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note">
+        Numbers in this table are the values used as preset chip targets at build time and will be regenerated when the data pipeline publishes the next ITM and STATEC release. Net figures are rounded to the nearest €50.
+      </p>
+    </section>
+
+    <section id="color-choices">
+      <HatchRule />
+      <h2>Color choices</h2>
+      <p>
+        The map uses five chromatic bands plus one grey, in OKLCH. The hue progression runs green to amber to red rather than a continuous diverging scale because the affordability question is about threshold crossings, not deviation from a midpoint.
+      </p>
+      <table class="bands">
+        <thead>
+          <tr>
+            <th scope="col">Band</th>
+            <th scope="col">Threshold</th>
+            <th scope="col">Meaning</th>
+            <th scope="col">OKLCH</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="swatch" aria-hidden="true" style="background: var(--band-a);"></span>A</td>
+            <td>under 30%</td>
+            <td>within the affordability ceiling</td>
+            <td><code>0.62 0.13 145</code></td>
+          </tr>
+          <tr>
+            <td><span class="swatch" aria-hidden="true" style="background: var(--band-b);"></span>B</td>
+            <td>30 to 40%</td>
+            <td>stretched</td>
+            <td><code>0.78 0.16 95</code></td>
+          </tr>
+          <tr>
+            <td><span class="swatch" aria-hidden="true" style="background: var(--band-c);"></span>C</td>
+            <td>40 to 50%</td>
+            <td>burdened</td>
+            <td><code>0.66 0.18 50</code></td>
+          </tr>
+          <tr>
+            <td><span class="swatch" aria-hidden="true" style="background: var(--band-d);"></span>D</td>
+            <td>50 to 70%</td>
+            <td>severely burdened</td>
+            <td><code>0.52 0.20 25</code></td>
+          </tr>
+          <tr>
+            <td><span class="swatch" aria-hidden="true" style="background: var(--band-e);"></span>E</td>
+            <td>over 70%</td>
+            <td>beyond reach</td>
+            <td><code>0.36 0.13 20</code></td>
+          </tr>
+          <tr>
+            <td><span class="swatch" aria-hidden="true" style="background: var(--band-x);"></span>X</td>
+            <td>no data</td>
+            <td>below publication threshold</td>
+            <td><code>0.88 0.005 260</code></td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        The 30 percent ceiling is the Center for Housing Policy and OECD benchmark.<sup><a id="fnref-3" href="#fn-3" class="fnref">3</a></sup> The 50 and 70 percent steps follow HUD's severe-cost-burden categories.<sup><a id="fnref-4" href="#fn-4" class="fnref">4</a></sup> The ramp is verified against deuteranopia, protanopia, and tritanopia emulations; the non-monotonic lightness pattern (0.62, 0.78, 0.66, 0.52, 0.36) preserves band separation under all three.
+      </p>
+    </section>
+
+    <section id="update-cadence">
+      <HatchRule />
+      <h2>Update cadence</h2>
+      <p>
+        The Observatoire de l'Habitat publishes rent releases quarterly and sale releases annually with a quarterly rolling update. This site rebuilds against the most recent release of each, picked automatically from the data.public.lu dataset API at the time the pipeline runs.
+      </p>
+      <p>
+        Each build writes the period covered and the generation timestamp to <code>/data/meta.json</code>, which is the canonical record of what the map currently shows. A change in either is the signal that the figures have been refreshed.
+      </p>
+    </section>
+
+    <section id="footnotes" class="footnotes" aria-label="Footnotes">
+      <HatchRule />
+      <h2>Footnotes</h2>
+      <ol>
+        <li id="fn-1">
+          Center for Housing Policy. "Affordability indicator." See also OECD Housing Database, Indicator HM1.2.1. <a href="#fnref-1" class="fnret" aria-label="Return to reference 1">↩</a>
+        </li>
+        <li id="fn-2">
+          US Department of Housing and Urban Development. "HUD Affordable Housing Cost Burden." Severe burden defined as housing costs exceeding 50 percent of income. <a href="#fnref-2" class="fnret" aria-label="Return to reference 2">↩</a>
+        </li>
+        <li id="fn-3">
+          Same source as note 1. The 30 percent figure traces back to the 1981 Brooke Amendment in US federal housing policy and was codified by the OECD in the 1990s. <a href="#fnref-3" class="fnret" aria-label="Return to reference 3">↩</a>
+        </li>
+        <li id="fn-4">
+          Same source as note 2. HUD's threshold of 50 percent is used here for band D; the 70 percent step is this site's addition, marking the point at which less than a third of income remains for everything other than rent. <a href="#fnref-4" class="fnret" aria-label="Return to reference 4">↩</a>
+        </li>
+      </ol>
+    </section>
+
+    <p class="cite-as">
+      Cite as: Lohr, M. (2026). <cite>Salary vs. Rent in Luxembourg, by commune.</cite> Retrieved from <a href={siteUrl}>{siteUrl}</a> on {buildDate}. Data period: rents Q4 2025, sales 2025.
+    </p>
+
+    <p class="footer-line">
+      {m.footer_no_tracking()} <a href={repoUrl} target="_blank" rel="noopener">{m.footer_source()}</a>.
+    </p>
+  </article>
+</Layout>
+
+<style>
+  .article {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 80px 24px 80px;
+  }
+
+  @media (max-width: 720px) {
+    .article {
+      padding: 48px 16px 64px;
+    }
+  }
+
+  /* H1 */
+  .h1 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(36px, 6vw, 56px);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin: 0 0 24px;
+    font-variation-settings: "opsz" 72, "SOFT" 0, "WONK" 0;
+    text-wrap: balance;
+  }
+
+  /* Deck / standfirst */
+  .deck {
+    font-family: var(--font-ui);
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    max-width: 60ch;
+    margin: 0 0 40px;
+    text-wrap: pretty;
+  }
+
+  /* Anchor index */
+  .index {
+    margin: 0 0 64px;
+  }
+  .index ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    row-gap: 6px;
+  }
+  .index a {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.6;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    text-decoration: none;
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    align-items: baseline;
+    padding: 4px 0;
+  }
+  @media (max-width: 720px) {
+    .index a {
+      padding: 10px 0;
+    }
+  }
+  .index a:hover .label {
+    color: var(--ink);
+  }
+  .index .num {
+    color: var(--ink-faint);
+  }
+  .index .label {
+    transition: color 150ms var(--ease-out);
+  }
+
+  /* Sections */
+  section {
+    margin: 64px 0 0;
+    scroll-margin-top: 72px;
+  }
+  section:first-of-type {
+    margin-top: 64px;
+  }
+
+  /* HatchRule lives directly inside <section>; add space before/after */
+  section :global(.hatch) {
+    margin: 0 0 32px;
+  }
+
+  /* H2 */
+  h2 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 24px;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    margin: 0 0 24px;
+    font-variation-settings: "opsz" 30, "SOFT" 0, "WONK" 0;
+  }
+
+  /* H3 */
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin: 32px 0 12px;
+    font-variation-settings: "opsz" 24, "SOFT" 0, "WONK" 0;
+  }
+
+  /* Body paragraphs */
+  p {
+    font-family: var(--font-ui);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.6;
+    color: var(--ink);
+    max-width: 70ch;
+    margin: 0 0 18px;
+    text-wrap: pretty;
+  }
+
+  em {
+    font-style: italic;
+  }
+
+  strong {
+    font-weight: 600;
+  }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: 2px;
+    padding: 1px 5px;
+    letter-spacing: 0;
+  }
+
+  /* Inline body links */
+  p a, ol.steps a, td a, .footnotes li a {
+    color: var(--ink-soft);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-thickness: 1px;
+    transition: color 150ms var(--ease-out);
+  }
+  p a:hover, ol.steps a:hover, td a:hover, .footnotes li a:hover {
+    color: var(--ink);
+  }
+  .xref {
+    color: var(--ink-soft);
+  }
+
+  /* Numbered steps (yield procedure) */
+  ol.steps {
+    list-style: none;
+    counter-reset: step;
+    padding: 0;
+    margin: 0 0 24px;
+    max-width: 70ch;
+  }
+  ol.steps li {
+    counter-increment: step;
+    position: relative;
+    padding-left: 36px;
+    margin: 0 0 12px;
+    font-family: var(--font-ui);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+  ol.steps li::before {
+    content: counter(step, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    top: 2px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--ink-faint);
+  }
+
+  /* Pull quote */
+  .pull-quote {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 1.4;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    border-left: 1px solid var(--ink-faint);
+    padding: 4px 0 4px 16px;
+    margin: 32px 0;
+    max-width: 60ch;
+    font-variation-settings: "opsz" 30, "SOFT" 100, "WONK" 1;
+  }
+
+  /* Footnote refs in body */
+  .fnref {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-decoration: none;
+    color: var(--ink-soft);
+    padding: 0 2px;
+    letter-spacing: 0;
+  }
+  .fnref:hover {
+    color: var(--ink);
+  }
+  sup {
+    font-size: 0.8em;
+    vertical-align: super;
+    line-height: 0;
+  }
+
+  /* Footnotes section */
+  .footnotes ol {
+    list-style: none;
+    counter-reset: footnote;
+    padding: 0;
+    margin: 0;
+    max-width: 70ch;
+  }
+  .footnotes li {
+    counter-increment: footnote;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    padding-left: 28px;
+    text-indent: -28px;
+    margin: 0 0 10px;
+    scroll-margin-top: 72px;
+  }
+  .footnotes li::before {
+    content: counter(footnote) ".";
+    display: inline-block;
+    width: 20px;
+    margin-right: 8px;
+    text-indent: 0;
+    color: var(--ink-faint);
+  }
+  .footnotes li:target {
+    background: var(--surface);
+    transition: background 200ms var(--ease-out);
+  }
+  .fnret {
+    text-decoration: none !important;
+    margin-left: 4px;
+    font-family: var(--font-mono);
+    color: var(--ink-faint) !important;
+    padding: 0 6px;
+  }
+  .fnret:hover {
+    color: var(--ink) !important;
+  }
+  @media (max-width: 720px) {
+    .fnref {
+      padding: 6px 4px;
+    }
+    .fnret {
+      padding: 6px 10px;
+      display: inline-block;
+    }
+  }
+
+  /* Tables: presets + bands */
+  table {
+    width: 100%;
+    max-width: 70ch;
+    border-collapse: collapse;
+    margin: 24px 0;
+    font-family: var(--font-ui);
+    font-size: 14px;
+  }
+  thead th {
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding: 0 12px 10px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  tbody td {
+    padding: 10px 12px 10px 0;
+    border-bottom: 1px solid var(--rule-soft);
+    color: var(--ink);
+    vertical-align: top;
+  }
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+  table code {
+    font-size: 11px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: var(--ink-soft);
+  }
+  .swatch {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    margin-right: 8px;
+    vertical-align: -2px;
+    border: 1px solid var(--rule);
+  }
+  .presets td:nth-child(2),
+  .presets td:nth-child(3) {
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+
+  .note {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.55;
+    color: var(--ink-faint);
+    max-width: 70ch;
+    margin: 12px 0 0;
+  }
+
+  /* Cite-as */
+  .cite-as {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--ink-faint);
+    max-width: 75ch;
+    margin: 64px 0 12px;
+  }
+  .cite-as cite {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 13px;
+    color: var(--ink-soft);
+    font-variation-settings: "opsz" 14, "SOFT" 80, "WONK" 0;
+  }
+  .cite-as a {
+    color: var(--ink-soft);
+    text-decoration: none;
+  }
+  .cite-as a:hover {
+    text-decoration: underline;
+  }
+
+  /* Footer line */
+  .footer-line {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.04em;
+    color: var(--ink-faint);
+    margin: 0;
+    max-width: none;
+  }
+  .footer-line a {
+    color: var(--ink-faint);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .footer-line a:hover {
+    color: var(--ink-soft);
+  }
+
+  /* Smooth-scroll anchors */
+  :global(html) {
+    scroll-padding-top: 72px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(html) {
+      scroll-behavior: smooth;
+    }
+  }
+
+  /* Print stylesheet */
+  @media print {
+    :global(.masthead) { display: none; }
+    .footer-line { display: none; }
+    .article {
+      max-width: none;
+      padding: 0;
+    }
+    p a::after,
+    ol.steps li a::after,
+    td a::after,
+    .footnotes li a:not(.fnret)::after,
+    .cite-as a::after {
+      content: " (" attr(href) ")";
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--ink-faint);
+    }
+    /* Don't expand fnref / fnret arrows */
+    .fnref::after,
+    .fnret::after {
+      content: "";
+    }
+    .footnotes li:target {
+      background: transparent;
+    }
+  }
+</style>

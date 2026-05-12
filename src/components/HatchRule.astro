@@ -1,0 +1,23 @@
+---
+/*
+ * The site's one ornament: the 8px diagonal stripe.
+ * On the methodology page, it appears as a thin row between H2 sections.
+ * The pattern is inlined as a data-URI SVG so it ships with zero requests.
+ */
+const pattern = encodeURIComponent(
+  `<svg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'>` +
+  `<path d='M-1 1 L1 -1 M0 8 L8 0 M7 9 L9 7' stroke='oklch(0.65 0.008 260)' stroke-width='1' fill='none' shape-rendering='crispEdges'/>` +
+  `</svg>`
+);
+---
+<div class="hatch" aria-hidden="true" style={`background-image: url("data:image/svg+xml,${pattern}")`}></div>
+
+<style>
+  .hatch {
+    height: 3px;
+    width: 100%;
+    background-repeat: repeat;
+    background-size: 8px 8px;
+    opacity: 0.7;
+  }
+</style>

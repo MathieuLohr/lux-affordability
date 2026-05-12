@@ -2,5 +2,11 @@
   "$schema": "https://inlang.com/schema/inlang-message-format",
   "site_title": "Salaire vs. Loyer",
   "site_tagline": "L'accessibilite du logement au Luxembourg, par commune.",
-  "scaffold_ok": "Verification du scaffold"
+  "scaffold_ok": "Verification du scaffold",
+  "back_to_map": "← Retour à la carte",
+  "methodology_link": "Méthodologie",
+  "methodology_title": "La méthodologie derrière la carte",
+  "methodology_description": "Comment la carte d'accessibilité est construite: sources de données, estimation du rendement locatif, limites, et où la mesure laisse place à l'estimation.",
+  "footer_no_tracking": "Aucun suivi, aucun cookie.",
+  "footer_source": "Source sur GitHub"
 }

@@ -2,5 +2,11 @@
   "$schema": "https://inlang.com/schema/inlang-message-format",
   "site_title": "Salary vs. Rent",
   "site_tagline": "Luxembourg housing affordability, by commune.",
-  "scaffold_ok": "Scaffold check"
+  "scaffold_ok": "Scaffold check",
+  "back_to_map": "← Back to the map",
+  "methodology_link": "Methodology",
+  "methodology_title": "The methodology behind the map",
+  "methodology_description": "How the affordability map is built: data sources, the rent-yield estimation, limitations, and where measurements give way to estimates.",
+  "footer_no_tracking": "No tracking, no cookies.",
+  "footer_source": "Source on GitHub"
 }

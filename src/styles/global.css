@@ -13,8 +13,37 @@
   --ease-out:     cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+html {
+  font-optical-sizing: auto;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 html, body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-ui);
+  margin: 0;
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px oklch(0.52 0.18 30 / 0.3);
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
