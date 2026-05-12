@@ -16,7 +16,7 @@ is the index and runbook on top.
 | Surface | Status | Notes |
 |---|---|---|
 | Astro 6 + Svelte 5 + Tailwind v4 + Paraglide scaffold | shipped | TypeScript strict, build green, `astro check` 0/0/0 |
-| `/` (map page) | stub only | a minimal "Salary vs. Rent" eyebrow + tagline + band swatches; placeholder until Phase B lands the real map |
+| `/` (map page) | shipped (B.1) | MapLibre 5 + MapTiler Positron basemap, 100 communes choropleth (34 measured, 23 estimated with diagonal hatch, 43 no-data grey), 5-band OKLCH ramp via `oklch-to-hex`, hover tooltip, click-to-pin with Esc unpin, hardcoded default scenario (€3540 income, 55m²). Sliders + URL state still deferred to B.2 |
 | `/methodology` | production-ready | full 8-section editorial article per `SHAPE-methodology.md`, zero JS, mobile bottom-up to 375px verified |
 | Paraglide messages (chrome) | en + fr | `messages/{en,fr}.json`; tree-shaken at build time; long-form prose still inline english pending fr content collection |
 | Cloudflare Pages headers | shipped | `public/_headers` caches `/_astro/*` immutable, `/data/*` short with stale-while-revalidate, sets conservative security headers |
@@ -27,7 +27,6 @@ is the index and runbook on top.
 | Phase | Owns | Blocker / next move |
 |---|---|---|
 | A.2 Data pipeline | `scripts/build-data.ts`, source fetch, XLS parsing, yield estimation, `static/data/{communes.geojson,meta.json}` | run `/impeccable shape` against `PLAN.md §A.2` or `/gsd-plan-phase data-pipeline`. Source URLs already in `data/source-urls.json` |
-| B.1 Map port | `src/lib/map/*`, `<Map>` Svelte island, MapLibre + MapTiler basemap | needs `VITE_MAPTILER_KEY` env var on Cloudflare; data pipeline output as prerequisite for accurate fills |
 | B.2 URL state | `src/lib/state/scenario.svelte.ts`, `url-codec.ts`, sliders / preset / segmented controls | depends on map mount; pure Svelte 5 runes, no nanostores |
 | C.1 Methodology updates | swap illustrative yield data for real pipeline output; resolve income preset table from STATEC/ITM build | pipeline prerequisite |
 | C.2 Mobile bottom sheet | `BottomSheet.svelte`, snap points 25/60/95 | requires resolving the vaul-svelte / hand-rolled call flagged in `PLAN.md §0.2` |

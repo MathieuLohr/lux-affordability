@@ -95,44 +95,30 @@
       maxZoom: 13,
     });
     map = m;
-    (window as unknown as { __map?: unknown }).__map = m;
-    m.on('error', (e) =>
-      console.error('[map error]', (e as { error?: { message?: string } }).error?.message ?? e),
-    );
 
     m.on('load', async () => {
-      try {
-        console.log('[map] load fired');
-        const res = await fetch(dataUrl);
-        const fc = await res.json();
-        console.log('[map] fetched', fc.features.length, 'features');
-        fc.features.forEach((f: { id?: number; properties: CommuneProps }, i: number) => {
-          f.id = i;
-        });
-        features = fc.features.map((f: { id: number; properties: CommuneProps }) => ({
-          id: f.id,
-          props: f.properties,
-        }));
+      const res = await fetch(dataUrl);
+      const fc = await res.json();
+      fc.features.forEach((f: { id?: number; properties: CommuneProps }, i: number) => {
+        f.id = i;
+      });
+      features = fc.features.map((f: { id: number; properties: CommuneProps }) => ({
+        id: f.id,
+        props: f.properties,
+      }));
 
-        m.addSource(SOURCE_ID, { type: 'geojson', data: fc });
-        console.log('[map] source added');
+      m.addSource(SOURCE_ID, { type: 'geojson', data: fc });
 
-        const hatchImg = makeHatchImageData();
-        m.addImage(HATCH_PATTERN_ID, hatchImg, { pixelRatio: 1 });
-        console.log('[map] hatch added');
+      const hatchImg = makeHatchImageData();
+      m.addImage(HATCH_PATTERN_ID, hatchImg, { pixelRatio: 1 });
 
-        m.addLayer(noDataLayer());
-        m.addLayer(measuredLayer());
-        m.addLayer(estimatedLayer());
-        m.addLayer(estimatedHatchLayer(HATCH_PATTERN_ID));
-        m.addLayer(outlineLayer());
-        console.log('[map] layers added');
+      m.addLayer(noDataLayer());
+      m.addLayer(measuredLayer());
+      m.addLayer(estimatedLayer());
+      m.addLayer(estimatedHatchLayer(HATCH_PATTERN_ID));
+      m.addLayer(outlineLayer());
 
-        applyBurden(m);
-        console.log('[map] burden applied');
-      } catch (e) {
-        console.error('[map] load handler threw:', e);
-      }
+      applyBurden(m);
 
       m.on('mousemove', INTERACTIVE_LAYER_IDS, (e) => {
         if (pinnedId !== null) return;
