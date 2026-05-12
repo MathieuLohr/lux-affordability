@@ -1,47 +1,47 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import MapMasthead from '../components/MapMasthead.astro';
+import Map from '../lib/map/Map.svelte';
+import CoverageStrip from '../lib/components/CoverageStrip.svelte';
+import { DEFAULT_SCENARIO } from '../lib/map/burden.ts';
+import meta from '../../public/data/meta.json';
 import { m } from '../paraglide/messages.js';
 ---
 <Layout title={m.site_title()} description={m.site_tagline()}>
-  <main class="mx-auto max-w-2xl px-6 py-24">
-    <p
-      class="font-mono text-[10px] tracking-[0.14em] uppercase"
-      style="color: var(--ink-faint);"
-    >
-      {m.scaffold_ok()}
-    </p>
-
-    <h1
-      class="font-display mt-3 text-5xl leading-[1.1] tracking-[-0.02em]"
-      style="color: var(--ink); font-variation-settings: 'opsz' 72;"
-    >
-      {m.site_title()}
-    </h1>
-
-    <p
-      class="mt-4 text-base leading-relaxed"
-      style="color: var(--ink-soft);"
-    >
-      {m.site_tagline()}
-    </p>
-
-    <div class="mt-10 flex gap-2" aria-hidden="true">
-      <span class="h-6 w-6 rounded" style="background: var(--band-a);"></span>
-      <span class="h-6 w-6 rounded" style="background: var(--band-b);"></span>
-      <span class="h-6 w-6 rounded" style="background: var(--band-c);"></span>
-      <span class="h-6 w-6 rounded" style="background: var(--band-d);"></span>
-      <span class="h-6 w-6 rounded" style="background: var(--band-e);"></span>
-      <span class="h-6 w-6 rounded" style="background: var(--band-x);"></span>
-    </div>
-
-    <p class="mt-10 font-mono text-[11px] tracking-[0.04em]" style="color: var(--ink-soft);">
-      <a
-        href="/methodology"
-        class="underline underline-offset-2"
-        style="color: var(--ink-soft);"
-      >
-        {m.methodology_link()} →
-      </a>
-    </p>
+  <MapMasthead />
+  <main class="map-host" aria-label="Affordability map">
+    <Map
+      client:only="svelte"
+      scenario={DEFAULT_SCENARIO}
+      dataUrl="/data/communes.geojson"
+    />
   </main>
+  <CoverageStrip
+    measured={meta.counts.measured}
+    estimated={meta.counts.estimated}
+    none={meta.counts.none}
+  />
 </Layout>
+
+<style is:global>
+  html,
+  body {
+    overflow: hidden;
+    height: 100%;
+  }
+</style>
+
+<style>
+  .map-host {
+    position: fixed;
+    top: 52px;
+    left: 0;
+    right: 0;
+    bottom: 35px;
+  }
+  @media (max-width: 480px) {
+    .map-host {
+      bottom: 33px;
+    }
+  }
+</style>

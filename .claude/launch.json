@@ -2,10 +2,23 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "astro-dev",
+      "runtimeExecutable": "/Users/mathieulohr/.nvm/versions/node/v22.22.2/bin/node",
+      "runtimeArgs": [
+        "/Users/mathieulohr/Downloads/lux-affordability-handoff/.claude/worktrees/ecstatic-grothendieck-76aed3/node_modules/astro/bin/astro.mjs",
+        "dev",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "4321"
+      ],
+      "port": 4321
+    },
+    {
       "name": "astro-preview",
       "runtimeExecutable": "/Users/mathieulohr/.nvm/versions/node/v22.22.2/bin/node",
       "runtimeArgs": [
-        "/Users/mathieulohr/Downloads/lux-affordability-handoff/node_modules/astro/bin/astro.mjs",
+        "/Users/mathieulohr/Downloads/lux-affordability-handoff/.claude/worktrees/ecstatic-grothendieck-76aed3/node_modules/astro/bin/astro.mjs",
         "preview",
         "--host",
         "127.0.0.1",
