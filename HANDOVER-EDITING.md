@@ -6,10 +6,14 @@ Pick-up doc for the next session. **The site is live and working.** This file is
 
 - **Production**: https://lux-affordability.pages.dev — serves `main`, auto-deploys on every push
 - **Repo**: [MathieuLohr/lux-affordability](https://github.com/MathieuLohr/lux-affordability)
-- **`main` HEAD** (as of this writing): `b1a3d96` — fix: sync cross-island scenario state immediately, not after URL debounce
+- **`main` HEAD** (as of this writing): `f7d8778` — feat: zone-level fallback closes coverage gap (57 → 100 communes)
 - All phased work (A.2 data pipeline → B.1 map → B.2 URL/controls → C.1 methodology → C.2 bottom sheet → D a11y/SEO/perf) plus three post-launch fixes are merged via [PR #4](https://github.com/MathieuLohr/lux-affordability/pull/4).
 
-### Latest fixes (PR #4, May 12)
+### Latest changes
+
+**May 12 — coverage gap closed (`f7d8778`).** Added a third provenance tier `zone` between `estimated` and no-data. For communes that publish neither commune-level rent nor sale, the Observatoire's zone-level apartment sale aggregate from *Le Logement en Chiffres* n°19 (Mar 2026, p. 13) is multiplied by the national median yield to produce a rent estimate. All 12 cantons map to one of 5 zones, so the country is now 100% covered: 34 measured + 23 estimated + 43 zone + 0 no-data. Visual: crosshatch overlay distinguishes zone-tier from the single-diagonal `estimated` tier. Tooltip surfaces the zone label (`ZONE ESTIMATE · NORD`, etc.) plus an explainer block. → [scripts/lib/zones.ts](scripts/lib/zones.ts), [scripts/lib/merge.ts](scripts/lib/merge.ts), [src/lib/map/hatch-pattern.ts](src/lib/map/hatch-pattern.ts), [src/pages/methodology.astro](src/pages/methodology.astro)
+
+### Earlier fixes (PR #4)
 
 1. **Commune search** — top of the controls panel; combobox semantics, NFKD-normalized substring match. Selecting fires `lux:findcommune` → Map island `fitBounds` + pin. → [src/lib/components/CommuneSearch.svelte](src/lib/components/CommuneSearch.svelte)
 2. **Hover-while-pinned** — pinned dialog (top-right) and floating tooltip (cursor) now coexist. The single `hover` state was split into `pinnedHover` and `floatingHover`. → [src/lib/map/Map.svelte](src/lib/map/Map.svelte)
@@ -21,7 +25,7 @@ Pick-up doc for the next session. **The site is live and working.** This file is
 nvm use 22          # engines field requires ≥22.13; pnpm 11 won't run on 20
 pnpm install
 pnpm dev            # http://localhost:4321
-pnpm test           # 56 / 56
+pnpm test           # 57 / 57
 pnpm check          # 0 errors / 0 warnings / 0 hints
 pnpm build          # static export to dist/
 pnpm run data:refresh   # re-runs the pipeline against data.public.lu URLs
@@ -37,7 +41,8 @@ pnpm run data:refresh   # re-runs the pipeline against data.public.lu URLs
   - `lux:scenariochange` window CustomEvent — carries `{ income, size }` in `detail`. Same-tab live sync, synchronous on slider input.
   - `lux:findcommune` window CustomEvent — carries `{ id }`. Search → Map.
   - URL `?i=…&s=…` — persistence (refresh, share, back/forward). Written via `replaceState` (slider, debounced 300 ms) or `pushState` (presets, flushed immediately).
-- **Data pipeline**: [scripts/build-data.ts](scripts/build-data.ts) reads three XLS / GeoJSON URLs from [data/source-urls.json](data/source-urls.json), joins them by LAU2, computes per-commune yield, writes [public/data/communes.geojson](public/data/communes.geojson) + [public/data/meta.json](public/data/meta.json). Run `pnpm run data:refresh`.
+- **Data pipeline**: [scripts/build-data.ts](scripts/build-data.ts) reads three XLS / GeoJSON URLs from [data/source-urls.json](data/source-urls.json), joins them by LAU2, computes per-commune yield, applies a zone-level fallback for communes with no commune-level data ([scripts/lib/zones.ts](scripts/lib/zones.ts)), writes [public/data/communes.geojson](public/data/communes.geojson) + [public/data/meta.json](public/data/meta.json). Run `pnpm run data:refresh`.
+- **Provenance tiers** (4): `measured` (solid) → `estimated` (single-diagonal hatch) → `zone` (crosshatch) → `null` (grey, ~empty today). Tooltip's mono provenance tag is the user's single point of truth.
 
 ## Backlog — deferred from V1 launch
 
@@ -61,6 +66,7 @@ None of these blocked the ship; they're real polish items.
 - LiveRegion debounce 500 ms. Text format: commune, canton, percent, band, provenance.
 - Pinned-tooltip live update via `{@const}` in template, not via `$effect` writing back into `hover` — that loops (effect-update-depth). Same applies to the floating tooltip now.
 - Tooltips: two slots. `pinnedHover` → `Tooltip` with `pinned: true` (top-right dialog). `floatingHover` → `Tooltip` with `pinned: false` (cursor-following). Hovering the pinned commune itself suppresses the floating slot to avoid duplication.
+- Zone fallback: provenance tier `zone` runs only when both `measured` and `estimated` paths fail. Zone sale prices are hardcoded constants in [scripts/lib/zones.ts](scripts/lib/zones.ts), citing *Le Logement en Chiffres* n°19. Auto-parsing the PDF was rejected — positional extraction from rendered bar-chart PDFs is too brittle for 10 numbers updated 4×/year. Manual update on each quarterly PDF release (~30 s of work). Crosshatch reuses the diagonal-hatch infrastructure; new pattern is in `makeCrosshatchImageData()`.
 
 ## File index for editing
 
@@ -83,7 +89,9 @@ Read-only context:
 
 ## What to do if data:refresh fails
 
-Upstream `data.public.lu` URLs include dated path segments (e.g. `20260326-095959`) that rotate when the Observatoire publishes a new release. If `pnpm run data:refresh` fails with a 404, bump the matching URL in [data/source-urls.json](data/source-urls.json) to the latest dated path on the dataset's landing page on data.public.lu. The three datasets are linked from the JSON-LD `isBasedOn` in [src/pages/index.astro](src/pages/index.astro).
+Upstream `data.public.lu` URLs include dated path segments (e.g. `20260326-095959`) that rotate when the Observatoire publishes a new release. **Auto-discovery is already wired** in [scripts/lib/fetch-source.ts](scripts/lib/fetch-source.ts): the build hits the dataset's udata API endpoint, picks the latest XLS by URL year-pattern, and falls back to the hardcoded URL in [data/source-urls.json](data/source-urls.json) only if the API is down. If `pnpm run data:refresh` 404s on the fallback, bump the matching URL in [data/source-urls.json](data/source-urls.json) to the latest dated path. The three datasets are linked from the JSON-LD `isBasedOn` in [src/pages/index.astro](src/pages/index.astro).
+
+**Zone fallback** is separate: [scripts/lib/zones.ts](scripts/lib/zones.ts) hardcodes the 5 zone sale prices read manually from *Le Logement en Chiffres* n°19. When a new issue lands, update the 10 numbers in `ZONE_SALE_EUR_PER_M2` and bump `PDF_REFERENCE`. No code change otherwise.
 
 ## Open infrastructure question (still not blocking)
 
