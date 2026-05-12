@@ -241,38 +241,20 @@
   $effect(() => {
     if (!map || features.length === 0) return;
     applyBurden(map);
-    if (hover && !hover.pinned) {
-      // refresh values shown in cursor tooltip if scenario changed mid-hover
-      const r = burden(hover.props.rent_per_m2, scenario);
-      hover = {
-        ...hover,
-        burden: r,
-        band: burdenToBand(r),
-        monthly_rent: hover.props.rent_per_m2 === null ? null : hover.props.rent_per_m2 * scenario.size,
-      };
-    }
-    if (hover && hover.pinned) {
-      const r = burden(hover.props.rent_per_m2, scenario);
-      hover = {
-        ...hover,
-        burden: r,
-        band: burdenToBand(r),
-        monthly_rent: hover.props.rent_per_m2 === null ? null : hover.props.rent_per_m2 * scenario.size,
-      };
-    }
   });
 
   $effect(() => {
-    // Debounced live-region announcement keyed off pin + scenario.
-    // Read scenario.income / scenario.size so $effect tracks them.
-    const _income = scenario.income;
-    const _size = scenario.size;
+    // Read all deps upfront so Svelte tracks them regardless of branching.
+    const id = pinnedId;
+    const income = scenario.income;
+    const size = scenario.size;
+    void income;
+    void size;
     clearTimeout(announceTimer);
-    if (pinnedId === null) {
+    if (id === null) {
       announcement = '';
       return;
     }
-    const id = pinnedId;
     announceTimer = setTimeout(() => {
       announcement = announceFor(id);
     }, 500);
@@ -290,7 +272,18 @@
 <div class="map-root">
   <div class="map" bind:this={mapContainer} aria-label="Map of Luxembourg communes colored by rent burden"></div>
   {#if hover}
-    <Tooltip state={hover} bandLabel={BAND_LABELS[hover.band] ?? 'no data'} onClose={() => { if (map) { setPinned(map, null); hover = null; } }} />
+    {@const liveRatio = burden(hover.props.rent_per_m2, scenario)}
+    {@const liveBand = burdenToBand(liveRatio)}
+    <Tooltip
+      state={{
+        ...hover,
+        burden: liveRatio,
+        band: liveBand,
+        monthly_rent: hover.props.rent_per_m2 === null ? null : hover.props.rent_per_m2 * scenario.size,
+      }}
+      bandLabel={BAND_LABELS[liveBand] ?? 'no data'}
+      onClose={() => { if (map) { setPinned(map, null); hover = null; } }}
+    />
   {/if}
   <Legend />
 
