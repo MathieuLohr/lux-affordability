@@ -1,0 +1,8 @@
+{
+  "$schema": "https://unpkg.com/wrangler@latest/config-schema.json",
+  "name": "lux-affordability",
+  "compatibility_date": "2026-05-12",
+  "assets": {
+    "directory": "./dist"
+  }
+}
