@@ -1,0 +1,54 @@
+---
+import { m } from '../paraglide/messages.js';
+---
+<header class="masthead">
+  <a href="/" class="title" aria-label={m.site_title()}>
+    <span>Salary <em>vs.</em> Rent</span>
+  </a>
+  <a href="/methodology" class="link" rel="help">{m.methodology_link()}</a>
+</header>
+
+<style>
+  .masthead {
+    height: 52px;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--rule);
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+
+  .title {
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    text-decoration: none;
+    font-variation-settings: "opsz" 14;
+  }
+
+  .title em {
+    font-style: italic;
+    font-variation-settings: "opsz" 14, "SOFT" 80, "WONK" 0;
+    font-weight: 500;
+  }
+
+  .link {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    text-decoration: none;
+    padding: 4px 0;
+  }
+
+  .link:hover {
+    color: var(--ink);
+  }
+</style>
