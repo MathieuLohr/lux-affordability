@@ -67,6 +67,8 @@ for (let i = 0; i < 40; i++) { m._render(0); await new Promise(r => setTimeout(r
 
 The map debug aid `window.__map = m` was removed in B.1's final commit. Re-add it temporarily in [Map.svelte](src/lib/map/Map.svelte) if you need to poke at the map from a preview REPL again — but remove before committing.
 
+**Easier escape hatch**: every PR now gets a CF preview URL (`https://<sha>-lux-affordability.mathieu-lohr.workers.dev` per commit, plus a per-branch URL). Open that in a real browser tab and you skip the headless visibility issue entirely. Useful for B.2 slider/URL-state verification where the dev cycle is "drag, observe URL, reload, observe state."
+
 ## Open infrastructure question (not for B.2)
 
 [PR #1 cloudflare/workers-autoconfig](https://github.com/MathieuLohr/lux-affordability/pull/1) is still open. It proposes migrating from static export to SSR-on-Workers (adds `@astrojs/cloudflare` adapter, fuller wrangler.jsonc with `main` server entry, `wrangler` devDep, vite ^7 override). My B.1 PR added a minimal static-assets-only wrangler.jsonc instead. If PR #1 is later merged, the wrangler.jsonc conflict is a 30-second resolve.
