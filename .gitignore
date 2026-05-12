@@ -21,3 +21,4 @@ src/paraglide/
 
 # local scratch
 .docs-cache.md
+.cache/

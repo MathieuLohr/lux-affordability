@@ -1,0 +1,17 @@
+{
+  "generated_at": "2026-05-12T14:01:48.121Z",
+  "period_rents": "rolling 12 months ending Q4 2025",
+  "period_sales": "calendar year 2025",
+  "source_urls": {
+    "rents": "https://download.data.public.lu/resources/loyers-annonces-des-logements-par-commune/20260326-095959/location-appartement-2025.xls",
+    "sales": "https://download.data.public.lu/resources/prix-de-vente-des-appartements-par-commune/20260326-094248/prix-moyen-au-metre-carre-enregistre-par-commune-2025.xls",
+    "boundaries": "https://download.data.public.lu/resources/limites-administratives-du-grand-duche-de-luxembourg/20231123-101528/communes4326.geojson"
+  },
+  "yield_median": 0.043953088687116476,
+  "counts": {
+    "measured": 34,
+    "estimated": 23,
+    "none": 43,
+    "total": 100
+  }
+}

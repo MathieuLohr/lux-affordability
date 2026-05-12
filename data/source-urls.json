@@ -64,7 +64,10 @@
     "data_to_geojson": {
       "Luxembourg-Ville": "Luxembourg",
       "Petange": "Pétange",
-      "Redange": "Redange/Attert"
+      "Redange": "Redange/Attert",
+      "Redange-sur-Attert": "Redange/Attert",
+      "Erpeldange": "Erpeldange-sur-Sûre",
+      "Preizerdaul": "Préizerdaul"
     }
   },
   "api_pattern_for_latest_url": {
