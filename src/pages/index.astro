@@ -3,7 +3,9 @@ import Layout from '../layouts/Layout.astro';
 import MapMasthead from '../components/MapMasthead.astro';
 import Map from '../lib/map/Map.svelte';
 import CoverageStrip from '../lib/components/CoverageStrip.svelte';
-import { DEFAULT_SCENARIO } from '../lib/map/burden.ts';
+import IncomeSlider from '../lib/components/IncomeSlider.svelte';
+import PresetGrid from '../lib/components/PresetGrid.svelte';
+import SizeControl from '../lib/components/SizeControl.svelte';
 import meta from '../../public/data/meta.json';
 import { m } from '../paraglide/messages.js';
 ---
@@ -12,9 +14,14 @@ import { m } from '../paraglide/messages.js';
   <main class="map-host" aria-label="Affordability map">
     <Map
       client:only="svelte"
-      scenario={DEFAULT_SCENARIO}
       dataUrl="/data/communes.geojson"
     />
+    <aside class="panel" aria-label="Scenario controls">
+      <div class="panel-title">Set your income, see <em>where it fits</em>.</div>
+      <IncomeSlider client:idle />
+      <PresetGrid client:idle />
+      <SizeControl client:idle />
+    </aside>
   </main>
   <CoverageStrip
     measured={meta.counts.measured}
@@ -42,6 +49,49 @@ import { m } from '../paraglide/messages.js';
   @media (max-width: 480px) {
     .map-host {
       bottom: 33px;
+    }
+  }
+
+  .panel {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    width: 280px;
+    max-width: calc(100vw - 32px);
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 16px 18px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    box-shadow:
+      0 1px 2px oklch(0.20 0.012 260 / 0.06),
+      0 8px 24px oklch(0.20 0.012 260 / 0.08);
+    z-index: 10;
+  }
+
+  .panel-title {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+
+  .panel-title em {
+    font-style: italic;
+    font-variation-settings: 'opsz' 14, 'SOFT' 80, 'WONK' 0;
+  }
+
+  @media (max-width: 600px) {
+    .panel {
+      top: auto;
+      bottom: 16px;
+      left: 16px;
+      right: 16px;
+      width: auto;
     }
   }
 </style>
