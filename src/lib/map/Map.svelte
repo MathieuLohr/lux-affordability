@@ -94,6 +94,11 @@
       const burden_pct = ratio === null ? -1 : ratio * 100;
       m.setFeatureState({ source: SOURCE_ID, id: f.id }, { burden_pct });
     }
+    // Defensive: setFeatureState normally schedules a repaint, but when a
+    // commune is pinned MapLibre occasionally skips the redraw of its own
+    // tile (observed in prod: pinned commune held its old burden color while
+    // the rest of the map updated). triggerRepaint is cheap and idempotent.
+    m.triggerRepaint();
   }
 
   function setPinned(m: MaplibreMap, id: number | string | null): void {
@@ -116,15 +121,15 @@
     };
   }
 
-  function toHoverFromProps(props: CommuneProps): HoverState {
+  function toHoverFromProps(props: CommuneProps, x: number, y: number): HoverState {
     const ratio = burden(props.rent_per_m2, scenario);
     return {
       props,
       burden: ratio,
       band: burdenToBand(ratio),
       monthly_rent: props.rent_per_m2 === null ? null : props.rent_per_m2 * scenario.size,
-      x: 0,
-      y: 0,
+      x,
+      y,
       pinned: true,
     };
   }
@@ -151,7 +156,13 @@
     const f = features.find((x) => x.id === id);
     if (!f) return;
     setPinned(map, id);
-    pinnedHover = toHoverFromProps(f.props);
+    // Search-triggered pin: no click point, so project the commune's bbox
+    // centroid to screen so the tooltip appears over the actual commune
+    // instead of jumping to a fixed corner.
+    const cx = (f.bbox[0][0] + f.bbox[1][0]) / 2;
+    const cy = (f.bbox[0][1] + f.bbox[1][1]) / 2;
+    const pt = map.project([cx, cy]);
+    pinnedHover = toHoverFromProps(f.props, pt.x, pt.y);
     floatingHover = null;
   }
 
@@ -272,7 +283,13 @@
           pinnedHover = null;
         } else {
           setPinned(m, id);
-          pinnedHover = toHoverFromProps(feat.properties as unknown as CommuneProps);
+          // Place pinned dialog at the click point, not at a fixed corner —
+          // keeps it visually anchored to the commune the user clicked.
+          pinnedHover = toHoverFromProps(
+            feat.properties as unknown as CommuneProps,
+            e.point.x,
+            e.point.y,
+          );
           floatingHover = null;
         }
       });

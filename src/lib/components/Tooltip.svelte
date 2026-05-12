@@ -42,13 +42,33 @@
     return 'no data';
   });
 
-  const pinnedStyle = $derived(state.pinned ? '' : `transform: translate(${state.x + 14}px, ${state.y + 14}px);`);
+  // Both pinned and floating tooltips position absolutely near the click /
+  // cursor. Clamp x/y so the box stays inside the viewport — the floating
+  // tooltip used to clip off the right edge, and the pinned dialog used to
+  // park top-right regardless of click location, which felt detached from the
+  // commune the user actually clicked.
+  const TT_W = 260;
+  const TT_H = 180;
+  const placement = $derived.by(() => {
+    if (typeof window === 'undefined') {
+      return { x: state.x + 14, y: state.y + 14 };
+    }
+    const margin = 8;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    let x = state.x + 14;
+    let y = state.y + 14;
+    if (x + TT_W + margin > vw) x = Math.max(margin, state.x - TT_W - 14);
+    if (y + TT_H + margin > vh) y = Math.max(margin, state.y - TT_H - 14);
+    return { x, y };
+  });
+  const placementStyle = $derived(`transform: translate(${placement.x}px, ${placement.y}px);`);
 </script>
 
 <div
   class="tt"
   class:pinned={state.pinned}
-  style={pinnedStyle}
+  style={placementStyle}
   role={state.pinned ? 'dialog' : 'tooltip'}
   aria-live="polite"
 >
@@ -115,9 +135,6 @@
   }
   .tt.pinned {
     pointer-events: auto;
-    top: 16px;
-    right: 16px;
-    left: auto;
   }
   .head {
     display: flex;
