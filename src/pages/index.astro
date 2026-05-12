@@ -6,8 +6,63 @@ import CoverageStrip from '../lib/components/CoverageStrip.svelte';
 import BottomSheet from '../lib/components/BottomSheet.svelte';
 import meta from '../../public/data/meta.json';
 import { m } from '../paraglide/messages.js';
+
+const datasetSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Dataset',
+  name: 'Luxembourg housing affordability by commune',
+  description:
+    "Rent burden as a share of net monthly income, computed per commune from Observatoire de l'Habitat advertised-rent and sale-price releases. Communes without a published rent are estimated from observed sales via the national median rental yield; communes with neither rent nor sale data are reported as no-data.",
+  url: new URL('/', Astro.site).toString(),
+  inLanguage: 'en',
+  isAccessibleForFree: true,
+  license: 'https://creativecommons.org/licenses/by/4.0/',
+  creator: { '@type': 'Person', name: 'Mathieu Lohr' },
+  spatialCoverage: { '@type': 'Place', name: 'Luxembourg' },
+  temporalCoverage: '2025/2025',
+  variableMeasured: [
+    { '@type': 'PropertyValue', name: 'Monthly rent per m²', unitText: 'EUR per m²' },
+    { '@type': 'PropertyValue', name: 'Sale price per m²', unitText: 'EUR per m²' },
+    { '@type': 'PropertyValue', name: 'Rent-to-income ratio', unitText: 'percent' },
+  ],
+  isBasedOn: [
+    {
+      '@type': 'Dataset',
+      name: "Observatoire de l'Habitat — Loyers annoncés des logements par commune",
+      url: 'https://data.public.lu/fr/datasets/loyers-annonces-des-logements-par-commune/',
+      license: 'https://creativecommons.org/licenses/by/4.0/',
+    },
+    {
+      '@type': 'Dataset',
+      name: "Observatoire de l'Habitat — Prix de vente des appartements par commune",
+      url: 'https://data.public.lu/fr/datasets/prix-de-vente-des-appartements-par-commune/',
+      license: 'https://creativecommons.org/licenses/by/4.0/',
+    },
+    {
+      '@type': 'Dataset',
+      name: 'ACT — Limites administratives du Grand-Duché de Luxembourg',
+      url: 'https://data.public.lu/fr/datasets/limites-administratives-du-grand-duche-de-luxembourg/',
+      license: 'https://creativecommons.org/publicdomain/zero/1.0/',
+    },
+  ],
+  distribution: [
+    {
+      '@type': 'DataDownload',
+      encodingFormat: 'application/geo+json',
+      contentUrl: new URL('/data/communes.geojson', Astro.site).toString(),
+    },
+  ],
+  datePublished: meta.generated_at,
+  dateModified: meta.generated_at,
+};
 ---
 <Layout title={m.site_title()} description={m.site_tagline()}>
+  <script
+    is:inline
+    slot="head"
+    type="application/ld+json"
+    set:html={JSON.stringify(datasetSchema)}
+  />
   <MapMasthead />
   <main class="map-host" aria-label="Affordability map">
     <Map

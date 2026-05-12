@@ -6,7 +6,7 @@ import { paraglideVitePlugin } from '@inlang/paraglide-js';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://lux-affordability.example',
+  site: 'https://lux-affordability.pages.dev',
   integrations: [svelte()],
   vite: {
     plugins: [
