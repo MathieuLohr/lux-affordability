@@ -1,0 +1,16 @@
+# cloudflare pages headers
+
+# hashed astro asset bundles: cache forever
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# data snapshots: short cache + long CDN cache, refresh in background
+/data/*
+  Cache-Control: public, max-age=300, s-maxage=86400, stale-while-revalidate=604800
+
+# global security headers
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  Permissions-Policy: interest-cohort=()
