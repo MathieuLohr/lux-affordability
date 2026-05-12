@@ -1,4 +1,5 @@
 <script lang="ts">
+  import CommuneSearch from './CommuneSearch.svelte';
   import IncomeSlider from './IncomeSlider.svelte';
   import PresetGrid from './PresetGrid.svelte';
   import SizeControl from './SizeControl.svelte';
@@ -98,6 +99,7 @@
   </button>
   <div class="panel-title">Set your income, see <em>where it fits</em>.</div>
   <div class="body">
+    <CommuneSearch />
     <IncomeSlider />
     <PresetGrid />
     <SizeControl />
