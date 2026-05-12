@@ -101,4 +101,18 @@
     color: var(--ink-faint);
     letter-spacing: 0.04em;
   }
+
+  @media (hover: none) and (pointer: coarse) {
+    input[type='range'] {
+      height: 8px;
+    }
+    input[type='range']::-webkit-slider-thumb {
+      width: 44px;
+      height: 44px;
+    }
+    input[type='range']::-moz-range-thumb {
+      width: 44px;
+      height: 44px;
+    }
+  }
 </style>
