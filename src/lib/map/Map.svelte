@@ -45,16 +45,44 @@
     pinned: boolean;
   };
 
+  type BBox = [[number, number], [number, number]];
+  type Feat = { id: number | string; props: CommuneProps; bbox: BBox };
+
   let mapContainer: HTMLDivElement;
   let map: MaplibreMap | undefined = $state(undefined);
-  let hover: HoverState | null = $state(null);
+  let pinnedHover: HoverState | null = $state(null);
+  let floatingHover: HoverState | null = $state(null);
   let pinnedId: number | string | null = $state(null);
-  let features: Array<{ id: number | string; props: CommuneProps }> = $state([]);
+  let features: Feat[] = $state([]);
   let listEl: HTMLUListElement | undefined = $state();
   let announcement = $state('');
   let announceTimer: ReturnType<typeof setTimeout> | undefined;
 
   const HATCH_PATTERN_ID = 'hatch-estimated';
+
+  function computeBbox(geom: { type: string; coordinates: unknown }): BBox {
+    let minLng = Infinity;
+    let minLat = Infinity;
+    let maxLng = -Infinity;
+    let maxLat = -Infinity;
+    const visit = (c: unknown): void => {
+      if (Array.isArray(c) && typeof c[0] === 'number') {
+        const lng = c[0] as number;
+        const lat = c[1] as number;
+        if (lng < minLng) minLng = lng;
+        if (lng > maxLng) maxLng = lng;
+        if (lat < minLat) minLat = lat;
+        if (lat > maxLat) maxLat = lat;
+      } else if (Array.isArray(c)) {
+        for (const item of c) visit(item);
+      }
+    };
+    visit(geom.coordinates);
+    return [
+      [minLng, minLat],
+      [maxLng, maxLat],
+    ];
+  }
 
   function applyBurden(m: MaplibreMap): void {
     for (const f of features) {
@@ -117,7 +145,15 @@
     const f = features.find((x) => x.id === id);
     if (!f) return;
     setPinned(map, id);
-    hover = toHoverFromProps(f.props);
+    pinnedHover = toHoverFromProps(f.props);
+    floatingHover = null;
+  }
+
+  function flyToCommune(id: number | string): void {
+    if (!map) return;
+    const f = features.find((x) => x.id === id);
+    if (!f) return;
+    map.fitBounds(f.bbox, { padding: 60, duration: 600, maxZoom: 12 });
   }
 
   function onListKeydown(e: KeyboardEvent): void {
@@ -174,10 +210,17 @@
       fc.features.forEach((f: { id?: number; properties: CommuneProps }, i: number) => {
         f.id = i;
       });
-      features = fc.features.map((f: { id: number; properties: CommuneProps }) => ({
-        id: f.id,
-        props: f.properties,
-      }));
+      features = fc.features.map(
+        (f: {
+          id: number;
+          properties: CommuneProps;
+          geometry: { type: string; coordinates: unknown };
+        }) => ({
+          id: f.id,
+          props: f.properties,
+          bbox: computeBbox(f.geometry),
+        }),
+      );
 
       m.addSource(SOURCE_ID, { type: 'geojson', data: fc });
 
@@ -193,16 +236,20 @@
       applyBurden(m);
 
       m.on('mousemove', INTERACTIVE_LAYER_IDS, (e) => {
-        if (pinnedId !== null) return;
         const feat = e.features?.[0];
         if (!feat) return;
         m.getCanvas().style.cursor = 'pointer';
-        hover = toHoverState(feat, e.point.x, e.point.y, false);
+        // Floating tooltip follows cursor; pinned dialog persists at top-right.
+        // Skip floating when hovering the pinned commune itself (avoids duplicate).
+        if (feat.id !== undefined && feat.id !== null && feat.id === pinnedId) {
+          floatingHover = null;
+          return;
+        }
+        floatingHover = toHoverState(feat, e.point.x, e.point.y, false);
       });
       m.on('mouseleave', INTERACTIVE_LAYER_IDS, () => {
-        if (pinnedId !== null) return;
         m.getCanvas().style.cursor = '';
-        hover = null;
+        floatingHover = null;
       });
 
       m.on('click', INTERACTIVE_LAYER_IDS, (e) => {
@@ -212,10 +259,11 @@
         if (id === undefined || id === null) return;
         if (pinnedId === id) {
           setPinned(m, null);
-          hover = null;
+          pinnedHover = null;
         } else {
           setPinned(m, id);
-          hover = toHoverState(feat, e.point.x, e.point.y, true);
+          pinnedHover = toHoverFromProps(feat.properties as unknown as CommuneProps);
+          floatingHover = null;
         }
       });
 
@@ -223,22 +271,40 @@
         const hits = m.queryRenderedFeatures(e.point, { layers: INTERACTIVE_LAYER_IDS });
         if (hits.length === 0) {
           setPinned(m, null);
-          hover = null;
+          pinnedHover = null;
         }
       });
     });
 
+    const onFind = (ev: Event): void => {
+      const detail = (ev as CustomEvent<{ id: number | string }>).detail;
+      if (!detail || detail.id === undefined || detail.id === null) return;
+      flyToCommune(detail.id);
+      pinCommune(detail.id);
+    };
+    window.addEventListener('lux:findcommune', onFind);
+
     const onKey = (ev: KeyboardEvent): void => {
       if (ev.key === 'Escape' && pinnedId !== null) {
         setPinned(m, null);
-        hover = null;
+        pinnedHover = null;
       }
     };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('lux:findcommune', onFind);
+    };
   });
 
   $effect(() => {
+    // Touch scenario deps upfront so they're tracked even when we early-return.
+    // applyBurden reads scenario.income and scenario.size via burden(); reading
+    // here makes the dependency explicit and survives features-empty boot.
+    const _income = scenario.income;
+    const _size = scenario.size;
+    void _income;
+    void _size;
     if (!map || features.length === 0) return;
     applyBurden(map);
   });
@@ -271,18 +337,39 @@
 
 <div class="map-root">
   <div class="map" bind:this={mapContainer} aria-label="Map of Luxembourg communes colored by rent burden"></div>
-  {#if hover}
-    {@const liveRatio = burden(hover.props.rent_per_m2, scenario)}
-    {@const liveBand = burdenToBand(liveRatio)}
+  {#if pinnedHover}
+    {@const pRatio = burden(pinnedHover.props.rent_per_m2, scenario)}
+    {@const pBand = burdenToBand(pRatio)}
     <Tooltip
       state={{
-        ...hover,
-        burden: liveRatio,
-        band: liveBand,
-        monthly_rent: hover.props.rent_per_m2 === null ? null : hover.props.rent_per_m2 * scenario.size,
+        ...pinnedHover,
+        burden: pRatio,
+        band: pBand,
+        monthly_rent:
+          pinnedHover.props.rent_per_m2 === null ? null : pinnedHover.props.rent_per_m2 * scenario.size,
       }}
-      bandLabel={BAND_LABELS[liveBand] ?? 'no data'}
-      onClose={() => { if (map) { setPinned(map, null); hover = null; } }}
+      bandLabel={BAND_LABELS[pBand] ?? 'no data'}
+      onClose={() => {
+        if (map) {
+          setPinned(map, null);
+          pinnedHover = null;
+        }
+      }}
+    />
+  {/if}
+  {#if floatingHover}
+    {@const fRatio = burden(floatingHover.props.rent_per_m2, scenario)}
+    {@const fBand = burdenToBand(fRatio)}
+    <Tooltip
+      state={{
+        ...floatingHover,
+        burden: fRatio,
+        band: fBand,
+        monthly_rent:
+          floatingHover.props.rent_per_m2 === null ? null : floatingHover.props.rent_per_m2 * scenario.size,
+      }}
+      bandLabel={BAND_LABELS[fBand] ?? 'no data'}
+      onClose={() => {}}
     />
   {/if}
   <Legend />
