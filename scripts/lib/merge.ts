@@ -6,6 +6,7 @@ import type {
   SaleRow,
 } from './types.ts';
 import { pickSalePrice, type YieldOutput } from './yield-estimate.ts';
+import { zoneSalePrice } from './zones.ts';
 
 export function merge(
   boundaries: CommuneFeatureCollection,
@@ -26,6 +27,7 @@ export function merge(
     let rent_per_m2: number | null = null;
     let rent_source: FeatureProperties['rent_source'] = null;
     let rent_offers: number | null = null;
+    let zone_label: string | null = null;
     if (rentRow?.rent_per_m2 !== undefined && rentRow?.rent_per_m2 !== null) {
       rent_per_m2 = round(rentRow.rent_per_m2, 2);
       rent_source = 'measured';
@@ -34,6 +36,14 @@ export function merge(
       rent_per_m2 = round(yields.estimates.get(name)!, 2);
       rent_source = 'estimated';
       rent_offers = null;
+    } else {
+      const zs = zoneSalePrice(f.properties.CANTON);
+      if (zs) {
+        rent_per_m2 = round((zs.eur_per_m2 * yields.median) / 12, 2);
+        rent_source = 'zone';
+        rent_offers = null;
+        zone_label = zs.label;
+      }
     }
 
     let sale_per_m2: number | null = null;
@@ -55,6 +65,7 @@ export function merge(
       rent_offers,
       sale_per_m2,
       sales_n,
+      zone_label,
     };
     return { type: 'Feature', properties: props, geometry: f.geometry };
   });

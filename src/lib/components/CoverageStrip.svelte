@@ -4,9 +4,10 @@
   type Props = {
     measured: number;
     estimated: number;
+    zone: number;
     none: number;
   };
-  const { measured, estimated, none }: Props = $props();
+  const { measured, estimated, zone, none }: Props = $props();
 </script>
 
 <aside class="strip" role="status">
@@ -20,6 +21,12 @@
     <span class="dot" style:background={BAND_COLORS.c} style:opacity="0.45"></span>
     <strong>{estimated}</strong>
     estimated
+  </span>
+  <span class="sep">·</span>
+  <span class="group">
+    <span class="dot" style:background={BAND_COLORS.c} style:opacity="0.25"></span>
+    <strong>{zone}</strong>
+    zone est.
   </span>
   <span class="sep">·</span>
   <span class="group">

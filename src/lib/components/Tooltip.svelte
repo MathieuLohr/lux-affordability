@@ -5,9 +5,10 @@
     COMMUNE: string;
     CANTON: string;
     rent_per_m2: number | null;
-    rent_source: 'measured' | 'estimated' | null;
+    rent_source: 'measured' | 'estimated' | 'zone' | null;
     rent_offers: number | null;
     sale_per_m2: number | null;
+    zone_label: string | null;
   };
 
   type Props = {
@@ -33,6 +34,11 @@
   const provenanceLabel = $derived(() => {
     if (state.props.rent_source === 'measured') return 'measured';
     if (state.props.rent_source === 'estimated') return 'estimated';
+    if (state.props.rent_source === 'zone') {
+      return state.props.zone_label
+        ? `zone estimate · ${state.props.zone_label}`
+        : 'zone estimate';
+    }
     return 'no data';
   });
 
@@ -60,6 +66,11 @@
       <span class="ratio-label">of income</span>
     </div>
     <div class="band-label">{bandLabel}</div>
+    {#if state.props.rent_source === 'zone'}
+      <div class="zone-note">
+        Rent and sale below the Observatoire publication threshold. Estimate uses the zone-level sale average × national median yield.
+      </div>
+    {/if}
   {:else}
     <div class="nodata">No published data. Below 30-listing threshold.</div>
   {/if}
@@ -162,6 +173,15 @@
     font-size: 11px;
     color: oklch(0.985 0.003 250 / 0.7);
     padding: 4px 0 8px;
+  }
+  .zone-note {
+    font-size: 10px;
+    line-height: 1.45;
+    color: oklch(0.985 0.003 250 / 0.6);
+    padding: 0 0 6px;
+    border-left: 1px solid oklch(0.985 0.003 250 / 0.18);
+    padding-left: 8px;
+    margin: 2px 0 4px;
   }
   .grid {
     display: grid;

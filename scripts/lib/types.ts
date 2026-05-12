@@ -23,10 +23,11 @@ export type FeatureProperties = {
   CANTON: string;
   LAU2: string;
   rent_per_m2: number | null;
-  rent_source: 'measured' | 'estimated' | null;
+  rent_source: 'measured' | 'estimated' | 'zone' | null;
   rent_offers: number | null;
   sale_per_m2: number | null;
   sales_n: number | null;
+  zone_label: string | null;
 };
 
 export type CommuneFeature = {
@@ -46,5 +47,5 @@ export type Meta = {
   period_sales: string;
   source_urls: { rents: string; sales: string; boundaries: string };
   yield_median: number;
-  counts: { measured: number; estimated: number; none: number; total: number };
+  counts: { measured: number; estimated: number; zone: number; none: number; total: number };
 };

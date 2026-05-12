@@ -8,6 +8,8 @@ export const LAYER_IDS = {
   measured: 'communes-measured',
   estimated: 'communes-estimated',
   estimatedHatch: 'communes-estimated-hatch',
+  zone: 'communes-zone',
+  zoneHatch: 'communes-zone-hatch',
   noData: 'communes-no-data',
   outline: 'communes-outline',
 } as const;
@@ -92,6 +94,32 @@ export function estimatedHatchLayer(patternId: string): FillLayerSpecification {
   };
 }
 
+export function zoneLayer(): FillLayerSpecification {
+  return {
+    id: LAYER_IDS.zone,
+    type: 'fill',
+    source: SOURCE_ID,
+    filter: ['==', ['get', 'rent_source'], 'zone'],
+    paint: {
+      'fill-color': burdenStepColor() as never,
+      'fill-opacity': alphaBoostOnPinned(0.55) as never,
+    },
+  };
+}
+
+export function zoneHatchLayer(patternId: string): FillLayerSpecification {
+  return {
+    id: LAYER_IDS.zoneHatch,
+    type: 'fill',
+    source: SOURCE_ID,
+    filter: ['==', ['get', 'rent_source'], 'zone'],
+    paint: {
+      'fill-pattern': patternId,
+      'fill-opacity': 0.7,
+    },
+  };
+}
+
 export function noDataLayer(): FillLayerSpecification {
   return {
     id: LAYER_IDS.noData,
@@ -128,4 +156,9 @@ export function outlineLayer(): LineLayerSpecification {
   };
 }
 
-export const INTERACTIVE_LAYER_IDS = [LAYER_IDS.measured, LAYER_IDS.estimated, LAYER_IDS.noData];
+export const INTERACTIVE_LAYER_IDS = [
+  LAYER_IDS.measured,
+  LAYER_IDS.estimated,
+  LAYER_IDS.zone,
+  LAYER_IDS.noData,
+];

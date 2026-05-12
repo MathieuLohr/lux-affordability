@@ -10,9 +10,11 @@
     measuredLayer,
     noDataLayer,
     outlineLayer,
+    zoneHatchLayer,
+    zoneLayer,
   } from './layers.ts';
   import { LUX_CENTER, LUX_ZOOM, STYLE_URL } from './style.ts';
-  import { makeHatchImageData } from './hatch-pattern.ts';
+  import { makeCrosshatchImageData, makeHatchImageData } from './hatch-pattern.ts';
   import { burden } from './burden.ts';
   import { burdenToBand, BAND_LABELS, type BandKey } from './color-ramp.ts';
   import { scenario } from '../state/scenario.svelte.ts';
@@ -29,10 +31,11 @@
     CANTON: string;
     LAU2: string;
     rent_per_m2: number | null;
-    rent_source: 'measured' | 'estimated' | null;
+    rent_source: 'measured' | 'estimated' | 'zone' | null;
     rent_offers: number | null;
     sale_per_m2: number | null;
     sales_n: number | null;
+    zone_label: string | null;
   };
 
   type HoverState = {
@@ -59,6 +62,7 @@
   let announceTimer: ReturnType<typeof setTimeout> | undefined;
 
   const HATCH_PATTERN_ID = 'hatch-estimated';
+  const CROSSHATCH_PATTERN_ID = 'hatch-zone';
 
   function computeBbox(geom: { type: string; coordinates: unknown }): BBox {
     let minLng = Infinity;
@@ -136,7 +140,9 @@
         ? ', measured'
         : f.props.rent_source === 'estimated'
           ? ', estimated from sale price'
-          : '';
+          : f.props.rent_source === 'zone'
+            ? `, zone-level estimate (${f.props.zone_label ?? 'zone'})`
+            : '';
     return `${f.props.COMMUNE}, ${f.props.CANTON}. ${pct}${band}${prov}.`;
   }
 
@@ -226,8 +232,12 @@
 
       const hatchImg = makeHatchImageData();
       m.addImage(HATCH_PATTERN_ID, hatchImg, { pixelRatio: 1 });
+      const crosshatchImg = makeCrosshatchImageData();
+      m.addImage(CROSSHATCH_PATTERN_ID, crosshatchImg, { pixelRatio: 1 });
 
       m.addLayer(noDataLayer());
+      m.addLayer(zoneLayer());
+      m.addLayer(zoneHatchLayer(CROSSHATCH_PATTERN_ID));
       m.addLayer(measuredLayer());
       m.addLayer(estimatedLayer());
       m.addLayer(estimatedHatchLayer(HATCH_PATTERN_ID));

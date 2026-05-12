@@ -11,7 +11,13 @@ describe('full pipeline regression (fixtures)', () => {
     expect(meta.counts.measured).toBeLessThanOrEqual(36);
     expect(meta.counts.estimated).toBeGreaterThanOrEqual(22);
     expect(meta.counts.estimated).toBeLessThanOrEqual(28);
-    expect(meta.counts.none).toBe(100 - meta.counts.measured - meta.counts.estimated);
+    // Zone fallback now covers every commune with no commune-level data
+    // (all 12 LU cantons map to one of the 5 zones), so none ≈ 0.
+    expect(meta.counts.zone).toBeGreaterThanOrEqual(35);
+    expect(meta.counts.zone).toBeLessThanOrEqual(50);
+    expect(meta.counts.none).toBe(
+      100 - meta.counts.measured - meta.counts.estimated - meta.counts.zone,
+    );
     expect(meta.counts.total).toBe(100);
   });
 
@@ -41,6 +47,7 @@ describe('full pipeline regression (fixtures)', () => {
       'rent_offers',
       'sale_per_m2',
       'sales_n',
+      'zone_label',
     ].sort();
     for (const f of fc.features) {
       const got = Object.keys(f.properties).sort();
@@ -53,6 +60,19 @@ describe('full pipeline regression (fixtures)', () => {
     for (const f of fc.features) {
       if (f.properties.rent_source === 'estimated') {
         expect(f.properties.sale_per_m2).not.toBeNull();
+      }
+    }
+  });
+
+  it('zone fallback only fires when no commune-level sale is published', async () => {
+    const { fc } = await buildData('fixtures');
+    for (const f of fc.features) {
+      if (f.properties.rent_source === 'zone') {
+        expect(f.properties.sale_per_m2).toBeNull();
+        expect(f.properties.rent_per_m2).not.toBeNull();
+        expect(f.properties.zone_label).not.toBeNull();
+      } else {
+        expect(f.properties.zone_label).toBeNull();
       }
     }
   });

@@ -29,9 +29,10 @@ const repoUrl = 'https://github.com/MathieuLohr/lux-affordability';
     <p class="deck">
       Each commune is colored by the share of a chosen income that an
       estimated rent would consume. Some figures are measured, some are
-      estimated from observed sales using the median rental yield, and
-      some communes have no published data at all. This page explains
-      all three.
+      estimated from observed sales using the median rental yield, some
+      are derived from the Observatoire's zone-level aggregates when
+      neither commune-level rent nor sale is publishable, and a few
+      have no published data at all. This page explains all four.
     </p>
 
     <nav class="index" aria-label="On this page">
@@ -68,10 +69,10 @@ const repoUrl = 'https://github.com/MathieuLohr/lux-affordability';
         Each commune carries one of six states. Five chromatic bands map to rent burden ratios; the sixth is a tinted grey for communes that do not publish enough data to draw a band.
       </p>
       <p>
-        A commune's fill is solid when its rent is <em>measured</em> from advertised listings published by the <a href="https://data.public.lu/fr/datasets/loyers-annonces-des-logements-par-commune/" target="_blank" rel="noopener" class="src">Observatoire de l'Habitat</a>. A commune's fill is overlaid with a diagonal hatch when its rent is <em>estimated</em>: this applies when a commune publishes sale prices but not rents, in which case the median rental yield (see <a href="#the-rent-yield-estimation" class="xref">section 04</a>) maps the observed sale price to an estimated rent. A flat grey commune is one with neither rent nor sale data at this size, after the Observatoire's suppression rules for low transaction counts.
+        A commune's fill is solid when its rent is <em>measured</em> from advertised listings published by the <a href="https://data.public.lu/fr/datasets/loyers-annonces-des-logements-par-commune/" target="_blank" rel="noopener" class="src">Observatoire de l'Habitat</a>. A commune's fill is overlaid with a diagonal hatch when its rent is <em>estimated</em>: this applies when a commune publishes sale prices but not rents, in which case the median rental yield (see <a href="#the-rent-yield-estimation" class="xref">section 04</a>) maps the observed sale price to an estimated rent. A commune's fill is overlaid with a denser cross-hatch when its rent is a <em>zone-level estimate</em>: this applies when neither commune-level rent nor sale clears the Observatoire's publication threshold, in which case the zone-level sale average from <em>Le Logement en Chiffres</em> stands in for the missing commune sale before the same yield step is applied. A flat grey commune is one with no usable data even at zone level.
       </p>
       <p>
-        Hovering or tapping a commune surfaces its rent (or rent estimate), the typical sale price, the number of listings the figures rest on, and a mono provenance tag reading <code>measured</code>, <code>estimated</code>, or <code>no data</code>. The provenance tag is the single point of truth: if it reads <code>estimated</code>, every other number in the tooltip is downstream of the yield estimate.
+        Hovering or tapping a commune surfaces its rent (or rent estimate), the typical sale price (when published), the number of listings the figures rest on, and a mono provenance tag reading <code>measured</code>, <code>estimated</code>, <code>zone estimate</code>, or <code>no data</code>. The provenance tag is the single point of truth: if it reads <code>estimated</code> the rent is downstream of one yield step; if it reads <code>zone estimate</code> the rent is downstream of a zone-level sale average and a yield step, with correspondingly weaker per-commune fidelity.
       </p>
     </section>
 
@@ -126,6 +127,24 @@ const repoUrl = 'https://github.com/MathieuLohr/lux-affordability';
       <p>
         The choice over a distance-to-capital regression is deliberate. A regression on geographic features would extend coverage to all 100 communes at the cost of inventing precision the source data does not have. Yields, by contrast, are a property of the local market that is measured for 31 communes and assumed to be similar for the next 23. When the 23 communes publish their own rents in a future release, the estimate is replaced by a measurement, and the map updates without a model change.
       </p>
+
+      <h3>The zone-level fallback</h3>
+      <p>
+        For communes that publish neither a rent nor a sale price at the relevant size, the Observatoire's quarterly synthesis report <em><a href="https://download.data.public.lu/resources/prix-de-vente-des-appartements-le-logement-en-chiffres/20260326-100211/logement-en-chiffre-19.pdf" target="_blank" rel="noopener" class="src">Le Logement en Chiffres</a></em> (issue n°19, March 2026) publishes apartment sale prices aggregated across five geographic zones. The five zones partition Luxembourg's twelve cantons exactly:
+      </p>
+      <ul class="zone-list">
+        <li><em>Canton de Luxembourg</em> — canton of Luxembourg (1 canton)</li>
+        <li><em>Capellen-Mersch</em> — Capellen, Mersch (2 cantons)</li>
+        <li><em>Canton d'Esch-sur-Alzette</em> — Esch-sur-Alzette (1 canton)</li>
+        <li><em>Est</em> — Echternach, Grevenmacher, Remich (3 cantons)</li>
+        <li><em>Nord</em> — Clervaux, Diekirch, Redange, Vianden, Wiltz (5 cantons)</li>
+      </ul>
+      <p>
+        The fallback procedure is one further step on top of the yield estimation above: look up the commune's canton, take its zone, read the zone's existing-stock apartment sale price from <em>Le Logement en Chiffres</em> n°19, multiply by the same national median yield, divide by twelve. The result is recorded with provenance <code>zone estimate</code> and the zone label is surfaced in the tooltip. This is a coarser estimate than the commune-level <code>estimated</code> tier because every commune in a zone receives the same input price, so within-zone variation is flattened.
+      </p>
+      <p>
+        The trade is explicit: lose per-commune precision, gain near-complete national coverage so the choropleth does not have to leave large patches of the map grey. The provenance tag is the user's signal of which trade they are looking at.
+      </p>
     </section>
 
     <section id="limitations">
@@ -144,7 +163,7 @@ const repoUrl = 'https://github.com/MathieuLohr/lux-affordability';
         <strong>Temporal mismatch.</strong> Sale prices are published as annual full-year figures; rents are published on a rolling 12-month basis updated quarterly. The site joins them at the most recent quarter available, accepting up to a one-year window of misalignment for communes where the two releases do not overlap cleanly.
       </p>
       <p>
-        <strong>The 43-commune coverage gap.</strong> Forty-three communes publish neither rent nor sale data at the size the user selects. The map shows them in grey, and the legend's coverage strip reports the count. This site does not fill them in with a model. The grey is the honest answer.
+        <strong>The zone-level flattening.</strong> Communes with neither commune-level rent nor sale receive a zone-level fallback (see <a href="#the-rent-yield-estimation" class="xref">section 04</a>). Every commune inside a zone is therefore colored with the same input sale price, which understates within-zone variation. The cross-hatch overlay marks these communes visually, and the tooltip provenance tag reads <code>zone estimate</code>. The fallback is intentionally coarse: it favors coverage over precision, and the user is told as much.
       </p>
     </section>
 
@@ -458,6 +477,32 @@ const repoUrl = 'https://github.com/MathieuLohr/lux-affordability';
   }
   .xref {
     color: var(--ink-soft);
+  }
+
+  /* Zone composition list under the zone fallback heading */
+  ul.zone-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 24px;
+    max-width: 70ch;
+  }
+  ul.zone-list li {
+    font-family: var(--font-ui);
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink);
+    padding: 4px 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  ul.zone-list li:last-child {
+    border-bottom: none;
+  }
+  ul.zone-list em {
+    font-family: var(--font-display);
+    font-style: italic;
+    color: var(--ink);
+    margin-right: 6px;
+    font-variation-settings: "opsz" 24, "SOFT" 0, "WONK" 0;
   }
 
   /* Numbered steps (yield procedure) */

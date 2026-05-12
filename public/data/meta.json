@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-12T14:01:48.121Z",
+  "generated_at": "2026-05-12T20:28:52.946Z",
   "period_rents": "rolling 12 months ending Q4 2025",
   "period_sales": "calendar year 2025",
   "source_urls": {
@@ -11,7 +11,8 @@
   "counts": {
     "measured": 34,
     "estimated": 23,
-    "none": 43,
+    "zone": 43,
+    "none": 0,
     "total": 100
   }
 }

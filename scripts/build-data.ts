@@ -55,12 +55,14 @@ export async function buildData(mode: Mode = 'live'): Promise<{
   const counts = {
     measured: 0,
     estimated: 0,
+    zone: 0,
     none: 0,
     total: fc.features.length,
   };
   for (const f of fc.features) {
     if (f.properties.rent_source === 'measured') counts.measured++;
     else if (f.properties.rent_source === 'estimated') counts.estimated++;
+    else if (f.properties.rent_source === 'zone') counts.zone++;
     else counts.none++;
   }
 
@@ -85,7 +87,7 @@ async function main(): Promise<void> {
 
   console.log(`mode: ${mode}`);
   console.log(`features: ${fc.features.length}`);
-  console.log(`measured: ${meta.counts.measured}, estimated: ${meta.counts.estimated}, none: ${meta.counts.none}`);
+  console.log(`measured: ${meta.counts.measured}, estimated: ${meta.counts.estimated}, zone: ${meta.counts.zone}, none: ${meta.counts.none}`);
   console.log(`yield median: ${(meta.yield_median * 100).toFixed(3)}%`);
   if (unmatched.length > 0) {
     console.warn(`unmatched ${unmatched.length} rows: ${unmatched.join(', ')}`);

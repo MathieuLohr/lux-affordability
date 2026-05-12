@@ -23,3 +23,37 @@ export function makeHatchImageData(): ImageData {
   ctx.stroke();
   return ctx.getImageData(0, 0, size, size);
 }
+
+/**
+ * 8x8 transparent ImageData with crossing diagonals (both \\ and //).
+ * Used on the zone-fallback layer so it reads visually heavier than the
+ * single-diagonal "estimated" hatch — coarser provenance = denser texture.
+ */
+export function makeCrosshatchImageData(): ImageData {
+  const size = 8;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('2d context unavailable');
+  ctx.clearRect(0, 0, size, size);
+  ctx.strokeStyle = 'oklch(0.20 0.012 260 / 0.32)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  // \\ diagonal (top-left to bottom-right), tiled
+  ctx.moveTo(0, 0);
+  ctx.lineTo(size, size);
+  ctx.moveTo(-1, size - 1);
+  ctx.lineTo(1, size + 1);
+  ctx.moveTo(size - 1, -1);
+  ctx.lineTo(size + 1, 1);
+  // // diagonal (bottom-left to top-right), tiled
+  ctx.moveTo(0, size);
+  ctx.lineTo(size, 0);
+  ctx.moveTo(-1, 1);
+  ctx.lineTo(1, -1);
+  ctx.moveTo(size - 1, size + 1);
+  ctx.lineTo(size + 1, size - 1);
+  ctx.stroke();
+  return ctx.getImageData(0, 0, size, size);
+}
