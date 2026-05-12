@@ -12,7 +12,11 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "check": "astro check"
+    "check": "astro check",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "data:refresh": "tsx scripts/build-data.ts",
+    "data:refresh:fixtures": "tsx scripts/build-data.ts --fixtures"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",
@@ -23,5 +27,11 @@
     "svelte": "^5.0.0",
     "tailwindcss": "^4.1.0",
     "typescript": "^5.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.2",
+    "tsx": "^4.21.0",
+    "vitest": "^4.1.5",
+    "xlsx": "^0.18.5"
   }
 }
